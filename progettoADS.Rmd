@@ -1,0 +1,552 @@
+---
+title: "Analisi bibliometrica - docenti del DMIF"
+author: "Claudia Costa"
+date: "`r Sys.Date()`"
+css: stileProgetto.css
+output: 
+  rmdformats::readthedown:
+  highlight: kate
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(rmdformats)
+#knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+## Global options
+options(max.print=2000)
+knitr::opts_chunk$set(echo=FALSE,
+	             cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+
+```{r caricamento librerie, include=FALSE}
+library(bibliometrix)
+library(dplyr)
+library(ggplot2)
+library(tidyverse) # Collection of all the good stuff like dplyr, ggplot2 ect.
+library(magrittr) # For extra-piping operators (eg. %<>%)
+library(data.table) # Good format to work with large datasets
+library(skimr) # Nice descriptives
+library(igraph) # Network analysis
+library(tidygraph) # Tidy network analysis
+library(ggraph) # ggplot-like nw plotting
+library(Matrix)
+library(purrr)
+library(plotly)
+library(htmltools)
+```
+
+
+```{r script plot, include=FALSE}
+source("plot.bibliometrix.R", local = knitr::knit_global())
+# or sys.source("your-script.R", envir = knitr::knit_global())
+```
+
+```{r script plot2, include=FALSE}
+source("authorProdOverTime.R", local = knitr::knit_global())
+# or sys.source("your-script.R", envir = knitr::knit_global())
+```
+
+# Introduzione
+<!-- uso file CSV filtrato con i docenti scelti a mano (serve la lista?), scaricati il 12/02/2024
+query usata su scopus: AF-ID ( "Universit&#224; degli Studi di Udine" 60025965 ) AND SUBJAREA ( comp ) AND ( LIMIT-TO ( PREFNAMEAUID , "Montanari, A.#7101889543" ) OR LIMIT-TO ( PREFNAMEAUID , "Chittaro, L.#7004119007" ) OR LIMIT-TO ( PREFNAMEAUID , "Mizzaro, S.#6603594721" ) OR LIMIT-TO ( PREFNAMEAUID , "Dovier, A.#6603827082" ) OR LIMIT-TO ( PREFNAMEAUID , "Policriti, A.#6701331312" ) OR LIMIT-TO ( PREFNAMEAUID , "Miculan, M.#6602346936" ) OR LIMIT-TO ( PREFNAMEAUID , "Piazza, C.#56228866500" ) OR LIMIT-TO ( PREFNAMEAUID , "Piciarelli, C.#9039137600" ) OR LIMIT-TO ( PREFNAMEAUID , "Fontana, F.#55970349500" ) OR LIMIT-TO ( PREFNAMEAUID , "Lancia, G.#6701584197" ) OR LIMIT-TO ( PREFNAMEAUID , "Formisano, A.#7003786950" ) OR LIMIT-TO ( PREFNAMEAUID , "Roitero, K.#57191042663" ) OR LIMIT-TO ( PREFNAMEAUID , "Scagnetto, I.#56242036400" ) OR LIMIT-TO ( PREFNAMEAUID , "Brajnik, G.#6603009854" ) OR LIMIT-TO ( PREFNAMEAUID , "Serra, G.#10140344600" ) OR LIMIT-TO ( PREFNAMEAUID , "Ranon, R.#6603216942" ) OR LIMIT-TO ( PREFNAMEAUID , "Franceschet, M.#6603459161" ) OR LIMIT-TO ( PREFNAMEAUID , "Mirolo, C.#6603641510" ) OR LIMIT-TO ( PREFNAMEAUID , "Della Mea, V.#7003376592" ) OR LIMIT-TO ( PREFNAMEAUID , "Buttussi, F.#16229748200" ) OR LIMIT-TO ( PREFNAMEAUID , "Geatti, L.#57204585138" ) OR LIMIT-TO ( PREFNAMEAUID , "D&apos;Agostino, G.#35617431600" ) OR LIMIT-TO ( PREFNAMEAUID , "Della Monica, D.#57195719517" ) OR LIMIT-TO ( PREFNAMEAUID , "Maddalena, E.#56382377600" ) OR LIMIT-TO ( PREFNAMEAUID , "Casagrande, A.#23395669600" ) OR LIMIT-TO ( PREFNAMEAUID , "Comini, G.#7005313868" ) OR LIMIT-TO ( PREFNAMEAUID , "Puppis, G.#6507419503" ) OR LIMIT-TO ( PREFNAMEAUID , "Mea, V.D.#7003376592" ) OR LIMIT-TO ( PREFNAMEAUID , "Soprano, M.#57203392311" ) OR LIMIT-TO ( PREFNAMEAUID , "Monica, D.D.#57195719517" ) OR LIMIT-TO ( PREFNAMEAUID , "Romanello, R.#57903048800" ) ) -->
+
+
+```{r}
+# uso file bib filtrato con i docenti scelti a mano, scaricati il 12/02/2024
+#fileF <- "uniudFiltered (1).bib"
+#fileF <- "scopus.txt"
+#uniudFilt <- convert2df(file = fileF, dbsource = "scopus", format = "bibtex")
+```
+
+
+```{r caricamento file, include=FALSE}
+fileCSV <- "scopus.csv"
+prova <- convert2df(file = fileCSV, dbsource = "scopus", format = "csv")
+```
+## Che cosa è la bibliometria?
+La bibliometria è l'applicazione dell'analisi quantitativa e della statistica alle pubblicazioni, come gli articoli delle riviste, e ai relativi conteggi delle citazioni. La valutazione quantitativa dei dati relativi alle pubblicazioni e alle citazioni è oggi utilizzata in quasi tutti i campi scientifici per valutare la crescita, la maturità, gli autori di punta, le mappe concettuali e intellettuali, le tendenze di una comunità scientifica.
+
+La bibliometria è utilizzata anche nella valutazione delle prestazioni della ricerca, soprattutto nei laboratori universitari e governativi, e anche da responsabili politici, direttori e amministratori della ricerca, specialisti dell'informazione e bibliotecari, e dagli stessi studiosi.
+
+La libreria Bibliometrix supporta l'analisi di questi dati in 3 punti chiave:
+
+- importazione e conversione ad un formato adatto ad R;
+
+- analisi bibliometrica di base di un dataset di pubblicazioni;
+
+- costruzione matrici per l'analisi di co-citazioni, accoppiamenti, collaborazioni e co-parole. Le matrici sono i dati di input per eseguire l'analisi delle reti, l'analisi delle corrispondenze multiple e qualsiasi altra tecnica di riduzione dei dati.
+
+## Fonte dei dati
+I dati analizzati in questo progetto sono stati scaricati da [Scopus](https://www.scopus.com/search/form.uri?display=basic&zone=header&origin=searchbasic#basic), uno dei principali dabatase bibliografici. Sono stati selezionati 31 autori del DMIF, tra docenti e dottorandi.
+
+Ogni entry del dataframe contiene, per ogni articolo: la lista di autori, il titolo del documento, la sorgente di pubblicazione, il tipo di documento, le parole chiavi degli autori, le references, il numero di citazioni, l'anno...
+
+# Analisi bibliometrica
+## Analisi descrittiva dataframe
+
+Il primo passo consiste nell'effettuare un'analisi descrittiva dei dati bibliografici.
+
+La funzione biblioAnalysis calcola le principali misure bibliometriche e ritorna un oggetto della classe "bibliometrix".
+
+### Functions summary and plot
+Per riassumere i risultati principali dell'analisi bibliometrica, utilizzare la funzione generica summary. Essa visualizza le informazioni principali sulla struttura dei dati bibliografici e diverse tabelle, come la produzione scientifica annuale, i principali manoscritti per numero di citazioni, gli autori più produttivi, i Paesi più produttivi, le citazioni totali per Paese, le fonti più rilevanti (riviste) e le parole chiave più rilevanti.
+
+La tabella delle informazioni principali descrive le dimensioni della raccolta in termini di numero di documenti, numero di autori, numero di fonti, numero di parole chiave, durata e numero medio di citazioni.
+
+Inoltre, vengono mostrati diversi indici di co-autorialità. In particolare, l'indice Autori per articolo è calcolato come rapporto tra il numero totale di autori e il numero totale di articoli. L'indice Co-Autori per articolo è calcolato come numero medio di co-autori per articolo. In questo caso, l'indice tiene conto delle presenze degli autori, mentre per gli "autori per articolo" un autore, anche se ha pubblicato più di un articolo, viene conteggiato una sola volta. Per questo motivo, l'indice Autori per articolo ≤ Coautori per indice di articolo.
+
+L'indice di collaborazione (CI) è calcolato come Totale autori di articoli con più autori/Totale articoli con più autori (Elango e Rajendran, 2012; Koseoglu, 2016). In altre parole, l'indice di collaborazione è un indice di coautori per articolo calcolato solo sulla serie di articoli con più autori.
+
+
+
+(cose kaggle)
+Sebbene la bibliometria sia nota soprattutto per quantificare la produzione scientifica e misurarne la qualità e l'impatto, è utile anche per visualizzare e analizzare le strutture intellettuali, concettuali e sociali della ricerca, nonché la loro evoluzione e gli aspetti dinamici.
+
+In questo modo, la bibliometria mira a descrivere come sono strutturate specifiche discipline, domini scientifici o campi di ricerca e come si evolvono nel tempo. In altre parole, i metodi bibliometrici aiutano a mappare la scienza (la cosiddetta mappatura della scienza) e sono molto utili nel caso della sintesi delle ricerche, soprattutto per quelle sistematiche.
+
+La bibliometria è una scienza accademica fondata su un insieme di metodi statistici che possono essere utilizzati per analizzare quantitativamente i big data scientifici e la loro evoluzione nel tempo e scoprire informazioni. La struttura di rete è spesso utilizzata per modellare l'interazione tra autori, documenti/articoli, riferimenti, parole chiave, ecc.
+
+Bibliometrix è un software open-source per automatizzare le fasi di analisi e visualizzazione dei dati. Dopo aver convertito e caricato i dati bibliografici in R, Bibliometrix esegue un'analisi descrittiva e diverse analisi della struttura della ricerca.
+
+L'analisi descrittiva fornisce alcune istantanee sullo sviluppo annuale della ricerca, i primi "k" autori produttivi, i documenti, i Paesi e le parole chiave più rilevanti.
+
+
+```{r analisi descrittiva}
+results <- biblioAnalysis(prova, sep = ";")
+options(width=100)
+S <- summary(object = results, k = 15, pause = FALSE)
+gs <- plot.bibliometrix(x = results, k = 15, pause = FALSE)
+ggplotly(gs$MostProdAuthors)
+ggplotly(gs$MostProdCountries)
+ggplotly(gs$AnnualScientProd)
+ggplotly(gs$AverArtCitperYear)
+ggplotly(gs$AverTotCitperYear)
+
+# prendere oggetti creati con plot e passarlo a plotly
+# es oggetto g plot passarlo ggplotly(g) e crea grafico interattivo! salvare grafo in HTML
+```
+
+descrivere questi grafici
+
+
+### Documenti per tipo
+```{r analisi docs}
+prova %>%
+  count(DT, sort = TRUE)
+
+docType <- ggplot(prova) +
+  geom_bar(mapping = aes(x = fct_infreq(DT), fill = DT)) +
+  labs(x = "", y = "Number of documents", fill = "Type") +
+  theme_bw() +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = -60))
+
+ggplotly(docType)
+```
+
+il tipo piu presente è il conference paper, seguito da articoli e capitoli di libro
+
+
+## Analisi dei riferimenti citati
+La funzione citazioni genera la tabella di frequenza dei riferimenti più citati o dei primi autori più citati (dei riferimenti). (nel senso, sono tutte le references degli articoli della collezione)
+
+Per ogni manoscritto, i riferimenti citati sono in un'unica stringa memorizzata nella colonna "CR" del data frame.
+Per ottenere i manoscritti più frequentemente citati:
+```{r analisi ref}
+mostCitedRef <- citations(prova, field = "article", sep = ";")
+cbind(mostCitedRef$Cited[1:10])
+```
+
+vediamo che 2 articoli di Montanari sono tra i più citati
+
+
+Per ottenere i primi autori più frequentemente citati:
+```{r analisi ref aut}
+mostCitedAut <- citations(prova, field = "author", sep = ";")
+cbind(mostCitedAut$Cited[1:15])
+#cbind(CR$Cited[c(-2, 1:14)])
+```
+
+vediamo che gli autori più frequentemente citati sono montanari, dovier, mizzaro, policriti etc
+
+
+
+La funzione localCitations genera la tabella di frequenza degli autori più citati localmente. Le citazioni locali misurano quante volte un autore (o un documento) incluso in questa raccolta è stato citato da altri autori presenti nella raccolta. Calcola le citazioni locali (LCS) di autori e documenti di una raccolta bibliografica.
+
+Per ottenere gli autori locali più frequentemente citati:
+```{r analisi ref loc}
+mostCitedAutLoc <- localCitations(prova, sep = ";")
+mostCitedAutLoc$Authors[1:15,]
+```
+
+Per ottenere gli articoli di questi autori: (LCS local e GCS global)
+```{r analisi ref loc art}
+mostCitedAutLoc$Papers[1:10,]
+```
+
+## Classifica di dominanza degli autori
+La funzione dominanza calcola la classifica di dominanza degli autori come proposto da Kumar & Kumar, 2008.
+
+Gli argomenti della funzione sono: i risultati (oggetto di classe bibliometria) ottenuti da biblioAnalisi; e k (il numero di autori da considerare nell'analisi).
+
+```{r dominanza aut}
+domAut <- dominance(results, k = 10)
+domAut
+```
+Il fattore di dominanza è un rapporto che indica la frazione di articoli con più autori in cui uno studioso compare come primo autore.
+
+nessuno è stato primo autore di tutti gli articoli pubblicati
+
+
+## H-index degli autori
+L'h-index è una metrica a livello di autore che cerca di misurare sia la produttività che l'impatto citazionale delle pubblicazioni di uno scienziato o di uno studioso.
+
+L'indice si basa sull'insieme degli articoli più citati dello scienziato e sul numero di citazioni ricevute in altre pubblicazioni. L'indice è strutturato per quantificare mediante un singolo indice numerico non solo la produzione, ma anche l'influenza di uno scienziato, distinguendolo da chi avesse pubblicato molti articoli ma di scarso interesse.
+
+La funzione Hindex calcola l'indice H degli autori o l'indice H delle fonti e le sue varianti (g-index e m-index) in una raccolta bibliografica.
+
+Gli argomenti della funzione sono: M un data frame bibliografico; campo è un elemento di carattere che definisce l'unità di analisi in termini di autori (campo = "auhtor") o di fonti (campo = "source"); elementi un vettore di caratteri contenente i nomi degli autori (o delle fonti) per i quali si vuole calcolare l'H-index. L'argomento ha la forma c("COGNOME1 N", "COGNOME2 N",...)
+
+Per calcolare l'h index di ... in questa raccolta: NON SERVE
+```{r}
+#indices <- Hindex(prova, field = "author", elements=c("PIAZZA C", "DOVIER A", "ROMANELLO R", "FRANCESCHET M", "ROITERO K"), sep = ";", years = 10)
+
+#indices$H
+```
+
+```{r}
+#indices$CitationList
+```
+
+Per calcolare l'h-index dei primi 10 autori più produttivi (in questa raccolta):
+```{r indice h}
+authors=gsub(","," ",names(results$Authors)[1:10])
+
+indicesAll <- Hindex(prova, field = "author", elements=authors, sep = ";", years = 50)
+
+indicesAll$H
+```
+
+h index piu alto: chittaro, montanari, mizzaro
+
+## Produttività dei Top-Autori nel tempo
+La funzione AuthorProdOverTime calcola e traccia la produzione degli autori (in termini di numero di pubblicazioni e di citazioni totali all'anno) nel tempo.
+
+Gli argomenti della funzione sono: M un data frame bibliografico; k è il numero di k Top Authors; grafico è una logica. Se grafico=TRUE, la funzione traccia il grafico della produzione degli autori nel tempo.
+```{r produttivita aut}
+topAU <- authorProdOverTime(prova, k = 10, graph = TRUE)
+ggplotly(topAU$graph)
+#gg <- plot(topAU$graph)
+#ggplotly(gg)
+```
+vediamo che nel 2017 mizzaro ha pubblicato ben 19 articoli
+
+
+```{r produttivita aut top}
+## Table: Author's productivity per year
+head(topAU$dfAU)
+```
+
+
+
+### Stima dei coefficienti della Legge di Lotka
+La funzione lotka stima i coefficienti della legge di Lotka per la produttività scientifica (Lotka A.J., 1926).
+
+La legge di Lotka descrive la frequenza di pubblicazione degli autori in un determinato campo come una legge quadratica inversa, in cui il numero di autori che pubblicano un certo numero di articoli è un rapporto fisso rispetto al numero di autori che pubblicano un singolo articolo. Questo presupposto implica che il coefficiente beta teorico della legge di Lotka è pari a 2.
+
+Utilizzando la funzione Lotka è possibile stimare il coefficiente Beta della nostra collezione bibliografica e valutare, attraverso un test statistico, la somiglianza di questa distribuzione empirica con quella teorica.
+```{r coefficiente lotka}
+L <- lotka(results)
+
+# Author Productivity. Empirical Distribution
+head(L$AuthorProd)
+```
+
+Coefficiente beta: 
+```{r}
+# Beta coefficient estimate
+L$Beta
+```
+
+Costante:
+```{r}
+# Constant
+L$C
+```
+
+Bontà di adattamento:
+```{r}
+# Goodness of fit
+L$R2
+```
+
+P-value test a due campioni:
+```{r}
+# P-value of K-S two sample test
+L$p.value
+```
+
+
+
+La tabella mostra la distribuzione osservata della produttività scientifica nel nostro esempio.
+
+Il coefficiente Beta stimato è 1,13, con una bontà di adattamento pari a 0,78. Il test di Kolmogorov-Smirnoff a due campioni fornisce un valore di 0,00000... che significa che c'è una differenza significativa tra la distribuzione osservata e quella teorica di Lotka.
+
+È possibile confrontare le due distribuzioni utilizzando la funzione plot:
+
+```{r confronto distr}
+# Observed distribution
+Observed=L$AuthorProd[,3]
+
+# Theoretical distribution with Beta = 2
+Theoretical=10^(log10(L$C)-2*log10(L$AuthorProd[,1]))
+
+plot(L$AuthorProd[,1],Theoretical,type="l",col="red",ylim=c(0, 1), xlab="Articles",ylab="Freq. of Authors",main="Scientific Productivity")
+lines(L$AuthorProd[,1],Observed,col="blue")
+legend(x="topright",c("Theoretical (B=2)","Observed"),col=c("red","blue"),lty = c(1,1,1),cex=0.6,bty="n")
+```
+
+
+# Matrici di rete bibliografica
+Gli attributi del manoscritto sono collegati tra loro attraverso il manoscritto stesso: autore/i alla rivista, parole chiave alla data di pubblicazione, ecc.
+
+Queste connessioni di diversi attributi generano reti bipartite che possono essere rappresentate come matrici rettangolari (Manoscritti x Attributi).
+
+Inoltre, le pubblicazioni scientifiche contengono regolarmente riferimenti ad altri lavori scientifici. Questo genera un'altra rete, quella delle co-citazioni o reti di accoppiamento.
+
+Queste reti vengono analizzate per cogliere le proprietà significative del sistema di ricerca sottostante e, in particolare, per determinare l'influenza di unità bibliometriche come studiosi e riviste.
+
+## Reti bipartite
+cocMatrix è una funzione generale per calcolare una rete bipartita selezionando uno degli attributi dei metadati.
+
+Ad esempio, per creare una rete Manoscritto x Fonte di pubblicazione è necessario utilizzare il tag di campo "SO".
+```{r esempio bip}
+manSource <- cocMatrix(prova, Field = "SO", sep = ";")
+```
+manSource è una matrice binaria rettangolare che rappresenta una rete bipartita in cui le righe e le colonne sono rispettivamente manoscritti e fonti.
+
+L'elemento generico $manSource_{ij}$ è 1 se il manoscritto i è stato pubblicato nella fonte j, 0 altrimenti.
+
+La somma della colonna j-esima $manSource_j$ rappresenta il numero di manoscritti pubblicati nella fonte j.
+
+Ordinando, in ordine decrescente, le somme delle colonne di manSource, si possono vedere le fonti di pubblicazione più rilevanti:
+```{r bip source}
+sort(Matrix::colSums(manSource), decreasing = TRUE)[1:5]
+```
+
+
+Rete delle citazioni
+```{r rete citazioni 2}
+citNet <- cocMatrix(prova, Field = "CR", sep = ";")
+sort(Matrix::colSums(citNet), decreasing = TRUE)[1:5]
+```
+
+Rete degli autori: manoscritto x autore, conta quanti articoli fatti da autori
+```{r rete autori}
+autNet <- cocMatrix(prova, Field = "AU", sep = ";")
+sort(Matrix::colSums(autNet), decreasing = TRUE)[1:5]
+```
+
+
+```{r rete keywords aut}
+#Rete di parole chiave dell'autore
+#deNet <- cocMatrix(prova, Field = "DE", sep = ";")
+#sort(Matrix::colSums(deNet), decreasing = TRUE)[1:5]
+```
+
+
+
+## Accoppiamento bibliografico
+Si dice che due articoli sono accoppiati bibliograficamente se almeno una fonte citata compare nelle bibliografie di entrambi gli articoli (Kessler, 1963). (papers A e B sono accoppiati bibliograficamente perchè hanno citato entrambi papers C, D, E)
+
+Una rete di accoppiamento può essere ottenuta utilizzando la formulazione generale:
+$$B = A\cdot A^T$$
+dove A è una rete bipartita.
+
+L'elemento $b_{i,j}$ indica quanti accoppiamenti bibliografici esistono tra i papers i e j.
+
+B è una matrice simmetrica $B=B^T$.
+
+La forza dell'accoppiamento di due articoli, i e j, è definita semplicemente dal numero di riferimenti che gli articoli hanno in comune, come dato dall'elemento $b_{ij}$ della matrice B.
+
+(adj * trasposta(adj) rappresenta i successori in comune dei nodi, cioè gli stessi nodi che vengono collegati da i e j, nodi che collegano insieme gli stessi nodi (rappresenta la matrice degli accoppiamenti bibliografici))
+
+La funzione biblioNetwork calcola, a partire da un data frame bibliografico, le reti di accoppiamento più frequentemente utilizzate: Autori, Fonti e Paesi.
+
+biblioNetwork utilizza due argomenti per definire la rete da calcolare:
+- l'argomento di analisi può essere "citazione", "accoppiamento", "collaborazione" o "co-occorrenze".
+- L'argomento della rete può essere "autori", "riferimenti", "fonti", "paesi", "università", "parole chiave", "parole_chiave_autore", "titoli" e "abstract".
+
+
+Gli articoli con pochi riferimenti, quindi, tenderebbero a essere più debolmente accoppiati dal punto di vista bibliografico, se la forza di accoppiamento viene misurata semplicemente in base al numero di riferimenti che gli articoli contengono in comune.
+
+Ciò suggerisce che potrebbe essere più pratico passare a una misura relativa dell'accoppiamento bibliografico.
+
+La funzione normalizeSimilarity calcola la forza di associazione, l'inclusione, la somiglianza di Jaccard o di Salton tra i vertici di una rete. normalizeSimilarity può essere richiamata direttamente dalla funzione networkPlot() utilizzando l'argomento normalize.
+
+```{r accoppiamento autori}
+autCoupNet <- biblioNetwork(prova, analysis = "coupling", network = "authors", sep = ";")
+net = networkPlot(autCoupNet,  normalize = "association", weighted=NULL, n = 25, Title = "Authors' Coupling", type = "auto", size.cex=TRUE, remove.multiple=TRUE, labelsize=2, label.n=25, label.cex=TRUE, label.color = TRUE, halo = FALSE)
+net$cluster_res
+#net$nodeDegree
+```
+
+-> non riesco a capire il grado per ogni nodo, segna solo grado/max grado
+
+-> scrivere commenti a questa rete, vedendo le varie misure di centralità: vedere nodo piu centrale etc
+
+
+## Co-citazione bibliografica
+
+Si parla di co-citazione di due articoli quando **entrambi sono citati in un terzo articolo**.
+La co-citazione è la frequenza con cui due documenti sono citati insieme da altri documenti.
+La citazione può quindi essere vista come la controparte dell'accoppiamento bibliografico. (quindi papers A e B sono associati perchè sono co-citati nella bibliografia dei papers C, D, E)
+
+Una rete di co-citazione può essere ottenuta utilizzando la formulazione generale:
+$$C=A^T×A$$
+dove A è una rete bipartita.
+Due documenti sono collegati da un arco nella rete se sono citati insieme in uno o più documenti.
+
+Come la matrice B, anche la matrice C è simmetrica. La diagonale principale di C contiene il numero di casi in cui un riferimento è citato nel nostro data frame.
+
+In altre parole, l'elemento diagonale $c_i$ è il numero di citazioni locali del riferimento i.
+L'elemento $c_{i,j}$ rappresenta quante volte i documenti i e j sono stati co-citati insieme?
+
+(trasposta(adj) * adj rappresenta i predecessori in comune dei nodi, cioè i e j sono collegati dallo stesso nodo di partenza, appunto il predecessore è uguale (rappresenta la matrice delle co-citazioni))
+
+Utilizzando la funzione biblioNetwork, è possibile calcolare una rete di citazioni classiche:
+```{r rete citazioni}
+coCitNet <- biblioNetwork(prova, analysis = "co-citation", network = "references", sep = ";")
+#coCit = networkPlot(coCitNet,  normalize = "association", weighted=NULL, n = 10, Title = "Co-Citation Network", type = "auto", size.cex=TRUE, remove.multiple=TRUE, labelsize=2, label.n=10, label.cex=TRUE, label.color = TRUE, halo = FALSE)
+```
+
+
+```{r cocit net html, echo=FALSE}
+htmltools::tags$iframe(title = "Co-Citation Network", src = "coCitationNet.html")
+```
+
+-> descrivere rete con le varie misure
+
+```{r rete citazioni stat}
+netstat <- networkStat(coCitNet)
+summary(netstat, k = 10)
+```
+La rete è davvero grande e sparsa
+
+
+
+## Collaborazione autori
+La rete di collaborazione scientifica è una rete in cui i nodi sono gli autori e i legami sono le coautorialità, in quanto quest'ultima è una delle forme più documentate di collaborazione scientifica (Glanzel, 2004).
+
+Una rete di collaborazione tra autori può essere ottenuta utilizzando la formulazione generale:
+$$AC=A^T×A$$
+dove A è una rete bipartita Manoscritti x Autori.
+
+L'elemento diagonale $ac_i$ è il numero di papers di cui il ricercatore i è autore o coautore.
+
+Utilizzando la funzione biblioNetwork, è possibile calcolare una rete di collaborazione tra autori:
+
+```{r collaborazione aut}
+autColl <- biblioNetwork(prova, analysis = "collaboration", network = "authors", sep = ";")
+autnetcoll = networkPlot(autColl,  normalize = "association", weighted=NULL, n = 30, Title = "Authors' Collaboration", type = "auto", size.cex=TRUE, remove.multiple=TRUE, labelsize=2, label.n=30, label.cex=TRUE, label.color = TRUE, halo = FALSE)
+autnetcoll$cluster_res
+#autnetcoll$nodeDegree
+```
+
+-> descrivere rete con le varie misure
+
+## Collaborazione tra Paesi
+
+Rete dei Paesi
+```{r rete paesi}
+country <- metaTagExtraction(prova, Field = "AU_CO", sep = ";")
+countryNet <- cocMatrix(country, Field = "AU_CO", sep = ";")
+sort(Matrix::colSums(countryNet), decreasing = TRUE)[1:5]
+```
+
+
+```{r rete coll paesi}
+# Create a country collaboration network
+
+prova <- metaTagExtraction(prova, Field = "AU_CO", sep = ";")
+countryCol <- biblioNetwork(prova, analysis = "collaboration", network = "countries", sep = ";")
+
+# Plot the network
+netCountry = networkPlot(countryCol, n = dim(countryCol)[1], Title = "Country Collaboration", type = "circle", size = TRUE, remove.multiple = TRUE,labelsize = 0.7, cluster="none")
+netCountry$nodeDegree
+```
+
+ovviamente italia paese con piu collegamenti, segue usa, uk e spagna
+
+
+# Rete storica delle citazioni dirette
+La mappa storiografica è un grafo proposto da E. Garfield (2004) per rappresentare una mappa di rete cronologica delle citazioni dirette più rilevanti risultanti da una raccolta bibliografica.
+
+La funzione genera una matrice cronologica della rete di citazioni dirette che può essere tracciata con histPlot:
+
+```{r rete storica cit, include=FALSE}
+# Create a historical citation network
+#options(width=130)
+histResults <- histNetwork(prova, min.citations = quantile(prova$TC,0.75, na.rm = TRUE), sep = ";")
+```
+
+```{r plot rete storica cit}
+# Plot a historical co-citation network
+histPlotNet <- histPlot(histResults, n=20, size = 5, labelsize=3)
+#ggplotly(histPlotNet$g)
+```
+
+# Analisi parole chiave
+## Rete parole chiave
+Rete Keyword Scopus
+```{r rete keywords}
+idNet <- cocMatrix(prova, Field = "ID", sep = ";")
+sort(Matrix::colSums(idNet), decreasing = TRUE)[1:5]
+```
+
+## Rete co-occorrenze parole chiave
+
+```{r rete cooc key}
+# An example of a classical keyword co-occurrences network
+coOc <- biblioNetwork(prova, analysis = "co-occurrences", network = "keywords", sep = ";")
+coOcNet = networkPlot(coOc,  normalize = "association", weighted=T, n = 25, Title = "Keywords Co-Occurrence", type = "fruchterman", size.cex=TRUE, remove.multiple=TRUE, labelsize=2, label.n=25, label.cex=TRUE, label.color = TRUE, halo = FALSE)
+coOcNet$cluster_res
+#coOcNet$nodeDegree
+```
+
+vediamo che ci sono quattro clusters, descriverli?
+
+```{r rete cooc stat}
+coOcStat <- networkStat(coOc)
+summary(coOcStat, k = 10)
+```
+
+
+## Word cloud
+parole chiavi più presenti: computer circuits, semantics, logic programming
+
+```{r word cloud, echo=FALSE}
+htmltools::tags$iframe(title = "Word Cloud", src = "wordCloud_2.html")
+```
+
+## Mappa tematica
+L'analisi delle co-parole chiave disegna cluster di parole chiave. Questi vengono considerati come temi, la cui densità e centralità possono essere utilizzate per classificare i temi e mapparli in un diagramma bidimensionale.
+
+La mappa tematica è un diagramma molto intuitivo e possiamo analizzare i temi in base al quadrante in cui sono collocati: (1) quadrante in alto a destra: temi motori; (2) quadrante in basso a destra: temi di base; (3) quadrante in basso a sinistra: temi emergenti o in via di estinzione; (4) quadrante in alto a sinistra: temi molto specializzati/di nicchia.
+
+```{r mappa tematica}
+map <- thematicMap(prova, field = "ID", n = 250, minfreq = 5)
+plot(map$map)
+map$clusters
+#map$words
+```
+
+
+# Conclusioni?
+sskskskk
