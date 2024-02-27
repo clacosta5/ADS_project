@@ -9,6 +9,7 @@ output:
 editor_options: 
   markdown: 
     wrap: 72
+bibliography: references.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -27,6 +28,12 @@ knitr::opts_chunk$set(echo=FALSE,
 opts_knit$set(width=75)
 ```
 
+```{r img uniud, echo=FALSE}
+htmltools::img(src = knitr::image_uri("dmif.png"), 
+               alt = 'logo', 
+               style = 'position:absolute; top:0; right:0; padding:10px;')
+```
+
 ```{r caricamento librerie, include=FALSE}
 library(bibliometrix)
 library(dplyr)
@@ -43,6 +50,8 @@ library(purrr)
 library(plotly)
 library(htmltools)
 library(multigraph)
+library(wordcloud2)
+library(wordcloud)
 ```
 
 ```{r script plot, include=FALSE}
@@ -57,6 +66,16 @@ source("authorProdOverTime.R", local = knitr::knit_global())
 
 ```{r script summary, include=FALSE}
 source("summary.bibliometrix.R", local = knitr::knit_global())
+# or sys.source("your-script.R", envir = knitr::knit_global())
+```
+
+```{r script zzz, include=FALSE}
+source("zzz.R", local = knitr::knit_global())
+# or sys.source("your-script.R", envir = knitr::knit_global())
+```
+
+```{r script histPlot, include=FALSE}
+source("histPlot.R", local = knitr::knit_global())
 # or sys.source("your-script.R", envir = knitr::knit_global())
 ```
 
@@ -75,22 +94,26 @@ query usata su scopus: AF-ID ( "Universit&#224; degli Studi di Udine" 60025965 )
 ```{r caricamento file, include=FALSE}
 fileCSV <- "scopus.csv"
 prova <- convert2df(file = fileCSV, dbsource = "scopus", format = "csv")
+#M <- convert2df(file = fileCSV, dbsource = "scopus", format = "csv")
 ```
 
 ## Che cosa è la bibliometria?
 
 La bibliometria è una disciplina che utilizza analisi quantitative e statistiche per analizzare le pubblicazioni scientifiche e le loro relazioni.
 
-Il progetto si focalizza sull'analisi della produzione scientifica dei docenti del nostro dipartimento (DMIF), per cercare di dare una stima di:
+Il progetto si focalizza sull'analisi della produzione scientifica dei docenti del dipartimento DMIF dell'Università degli Studi di Udine, per cercare di dare una stima di:
+
 - come funziona la ricerca
+
 - quali sono i settori di maggiore interesse
+
 - gli autori più prolifici.
 
-Per supporto all'analisi ho utilizzato una libreria, [Bibliometrix](https://www.bibliometrix.org/home/), sviluppata da due docenti dell'Università di Napoli.
+Per supporto all'analisi ho utilizzato una libreria, [Bibliometrix](https://www.bibliometrix.org/home/) [@bibliometrix], sviluppata da due docenti dell'Università di Napoli.
 
 ## Fonte dei dati
 
-I dati analizzati in questo progetto sono stati scaricati da
+I dati analizzati in questo progetto sono stati scaricati (ultimo download: 12/02/2024) da
 [Scopus](https://www.scopus.com/search/form.uri?display=basic&zone=header&origin=searchbasic#basic), uno dei principali dabatase bibliografici. Sono stati selezionati 31 autori del DMIF, tra docenti e dottorandi.
 
 Ogni articolo del dataframe contiene svariati attributi tra cui: la lista di autori, il titolo del documento, la sorgente di pubblicazione, il tipo di documento, le parole chiavi degli autori, le references, il numero di citazioni, l'anno di pubblicazione.
@@ -103,7 +126,8 @@ La tabella delle informazioni principali descrive le dimensioni della
 raccolta in termini di numero di documenti, numero di autori, numero di fonti, numero di parole chiave, durata e numero medio di citazioni.
 
 - docs per autori è calcolato come rapporto tra il numero totale di autori e il numero totale di articoli.
-- Co-Autori per articolo è calcolato come numero medio di co-autori per articolo.
+
+- co-Autori per articolo è calcolato come numero medio di co-autori per articolo.
 
 ```{r analisi descrittiva}
 results <- biblioAnalysis(prova, sep = ";")
@@ -125,21 +149,24 @@ ggplotly(gs$MostProdCountries)
 #SCP: Single Country Publications
 #MCP: Multiple Country Publications
 ```
-Italia paese più produttivo, alcuni docenti erano in altri paesi (tipo Svizzera, UK) quando hanno pubblicato
+Italia paese più produttivo, alcuni autori erano in altri paesi (esempio Svizzera, UK) quando hanno pubblicato
 
 ```{r}
-ggplotly(gs$AnnualScientProd)
+plot(gs$AnnualScientProd)
 ```
+
 anno più produttivo: 2023 con 87 pubblicazioni
 
 ```{r}
-ggplotly(gs$AverArtCitperYear)
+plot(gs$AverArtCitperYear)
 ```
+
 anno con media citazioni in articoli più alta: 2018
 
 ```{r}
-ggplotly(gs$AverTotCitperYear)
+plot(gs$AverTotCitperYear)
 ```
+
 anno con più citazioni: 1987
 
 
@@ -158,13 +185,14 @@ docType <- ggplot(prova) +
 ggplotly(docType)
 ```
 
-il tipo piu presente è il conference paper, seguito da articoli e
-capitoli di libro
+Il tipo di pubblicazione piu presente è il conference paper, seguito da articoli e capitoli di libro.
 
-## Analisi delle references/citazioni?
+## Analisi delle citazioni
 
 <!-- La funzione citazioni genera la tabella di frequenza dei riferimenti più citati o dei primi autori più citati (dei riferimenti). (nel senso, sono tutte le references degli articoli della collezione) -->
-### Citazioni globali?
+### Citazioni globali
+
+La citazione globale rappresenta il numero totale di citazioni ricevute da un documento da tutte le pubblicazioni indicizzate in una fonte - in questo caso Scopus.
 
 Articoli più citati:
 ```{r analisi ref}
@@ -172,7 +200,7 @@ mostCitedRef <- citations(prova, field = "article", sep = ";")
 cbind(mostCitedRef$Cited[1:10])
 ```
 
-vediamo che 2 articoli di Montanari sono tra i più citati
+Vediamo che 2 articoli del Prof. Montanari sono tra i più citati.
 
 Per ottenere i primi autori più frequentemente citati:
 ```{r analisi ref aut}
@@ -181,8 +209,9 @@ cbind(mostCitedAut$Cited[1:15])
 #cbind(CR$Cited[c(-2, 1:14)])
 ```
 
-vediamo che gli autori più frequentemente citati sono montanari, dovier, mizzaro, policriti etc
+Vediamo che gli autori più frequentemente citati sono Prof. Montanari, Prof. Dovier, Prof. Mizzaro e Prof. Policriti.
 
+<!--
 ### Citazioni locali
 
 Le citazioni locali misurano quante volte un autore (o un documento) incluso in questa raccolta è stato citato da altri autori presenti nella raccolta. Calcola le citazioni locali (LCS) di autori e documenti di una raccolta bibliografica.
@@ -201,12 +230,15 @@ Per ottenere gli articoli di questi autori: (LCS local e GCS global)
 mostCitedAutLoc$Papers[1:10,]
 ```
 il primo ha local 33 e global 49
+-->
 
 
 ## Classifica di dominanza degli autori
 
 La funzione dominanza calcola la classifica di dominanza degli autori
-come proposto da Kumar & Kumar, 2008. Il fattore di dominanza è un rapporto che indica la frazione di articoli con più autori in cui uno studioso compare come primo autore.
+come proposto da Kumar & Kumar, 2008. 
+
+Il fattore di dominanza è un rapporto che indica la frazione di articoli con più autori in cui uno studioso compare come primo autore.
 
 <!-- Gli argomenti della funzione sono: i risultati (oggetto di classe
 bibliometria) ottenuti da biblioAnalisi; e k (il numero di autori da
@@ -217,7 +249,7 @@ domAut <- dominance(results, k = 10)
 domAut
 ```
 
-nessuno è stato primo autore di tutti gli articoli pubblicati
+Notiamo che nessuno è stato primo autore di tutti gli articoli pubblicati.
 
 ## H-index degli autori
 
@@ -252,7 +284,7 @@ indicesAll <- Hindex(prova, field = "author", elements=authors, sep = ";", years
 slice(indicesAll$H, order(indicesAll$H$h_index, decreasing = TRUE))
 ```
 
-Gli autori con l'H-index più alto sono i Professori Chittaro, Montanari e Mizzaro.
+Gli autori con l'H-index più alto sono i Prof. Chittaro, Prof. Montanari e Prof. Mizzaro.
 
 ## Produttività dei Top-Autori nel tempo
 
@@ -293,9 +325,7 @@ L <- lotka(results)
 L$AuthorProd[1:10,]
 ```
 
-
-La tabella mostra la distribuzione osservata della produttività
-scientifica. Notiamo che già dopo i primi 8 la legge non vale.
+La tabella mostra la distribuzione osservata della produttività scientifica. Notiamo che già dopo i primi 8 la legge non vale.
 
 Coefficiente beta:
 
@@ -425,6 +455,7 @@ In questo modo, la forza dell'accoppiamento viene confrontata in modo relativo, 
 
 
 L'accoppiamento bibliografico tra autori è una misura di quanto due autori condividono riferimenti comuni nelle loro pubblicazioni. In altre parole, quanti autori citano gli stessi lavori nelle loro ricerche.
+
 ```{r accoppiamento autori}
 autCoupNet <- biblioNetwork(prova, analysis = "coupling", network = "authors", sep = ";")
 net = networkPlot(autCoupNet,  normalize = "association", weighted=NULL, n = 25, Title = "Authors' Coupling", type = "auto", size.cex=TRUE, remove.multiple=TRUE, labelsize=2, label.n=25, label.cex=TRUE, label.color = TRUE, halo = FALSE)
@@ -432,9 +463,9 @@ net$cluster_res
 #net$nodeDegree
 ```
 
-### Analisi della rete
+### Analisi della rete 
 
-Il nodo più centrale della rete risulta essere il Professor Chittaro, con i valori più alti di tutti in queste tre metriche (ma non il grado).
+Il nodo più centrale della rete risulta essere il Professor Chittaro, con i valori più alti di tutti in queste tre metriche (ma non il grado) ^[Tutte le nozioni viste a lezione sono utilizzate ma non ri-definite.].
 
 Il secondo nodo più centrale è il Professor Montanari, il quale ha il secondo valore più alto nelle tre metriche e il grado più alto.
 
@@ -487,13 +518,13 @@ coCitNetValues
 
 ### Analisi della rete
 
-Il nodo con la centralità di Betweennees più alta è allen j.f. 1983-1, con 361.6. Il nodo con la centralità di PageRank più alta è moszkowski b. 1983, con 0.0414.
+Il nodo con la centralità di Betweennees più alta è Allen j.f. 1983-1, con 361.6. Il nodo con la centralità di PageRank più alta è Moszkowski b. 1983, con 0.0414.
 
 L'analisi evidenzia la presenza di diverse comunità di ricerca con interessi tematici specifici.
 
 La centralità degli autori varia a seconda del cluster di appartenenza e delle metriche considerate.
 
-Alcuni autori, come moszkowski b. 1983, allen j.f. 1983-1, halpern j.y. 1991-1, bresolin d. 2009 e venema y. 1991, presentano valori di centralità più alti rispetto ad altri, suggerendo un ruolo potenzialmente più rilevante nella rete.
+Alcuni autori, come Moszkowski b. 1983, Allen j.f. 1983-1, Halpern j.y. 1991-1, Bresolin d. 2009 e Venema y. 1991 presentano valori di centralità più alti rispetto ad altri, suggerendo un ruolo potenzialmente più rilevante nella rete.
 
 
 ```{r rete citazioni stat}
@@ -509,17 +540,11 @@ Centralizzazione del grado: misura la concentrazione dei collegamenti nella rete
 
 ## Collaborazione autori
 
-La rete di collaborazione scientifica è una rete in cui i nodi sono gli
-autori e i legami sono le coautorialità, in quanto quest'ultima è una
-delle forme più documentate di collaborazione scientifica (Glanzel,
-2004).
+La rete di collaborazione scientifica è una rete in cui i nodi sono gli autori e i legami sono le coautorialità, in quanto quest'ultima è una delle forme più documentate di collaborazione scientifica (Glanzel, 2004).
 
-Una rete di collaborazione tra autori può essere ottenuta utilizzando la
-formulazione generale: $$AC=A^T \cdot A$$ dove A è una rete bipartita
-Manoscritti x Autori.
+Una rete di collaborazione tra autori può essere ottenuta utilizzando la formulazione generale: $$AC=A^T \cdot A$$ dove A è una rete bipartita Papers x Autori.
 
-L'elemento diagonale $ac_i$ è il numero di papers di cui il ricercatore
-i è autore o coautore.
+L'elemento diagonale $ac_i$ è il numero di papers di cui il ricercatore $i$ è autore o coautore.
 
 ```{r collaborazione aut}
 autColl <- biblioNetwork(prova, analysis = "collaboration", network = "authors", sep = ";")
@@ -528,14 +553,15 @@ autnetcoll$cluster_res
 #autnetcoll$nodeDegree
 ```
 
-Sono presenti 4 clusters:
-- nel primo, il nodo Chittaro ha alta centralità di betweenness e PageRank, indicando un ruolo di connessione e influenza all'interno del cluster.
+Sono presenti 4 clusters ed in ognuno di essi è presente almeno un nodo con dei valori alti di centralità, il che indica un ruolo di connessione e influenza all'interno del cluster.
 
-- nel secondo, i nodi Dovier e Policriti hanno alta centralità di betweenness e PageRank, indicando un ruolo di connessione e influenza all'interno del cluster.
+- cluster 1: Prof. Chittaro e Prof. Serra
 
-- nel terzo, il nodo Montanari ha alta centralità di betweenness, closeness e PageRank, indicando un ruolo di centralità e influenza all'interno del cluster.
+- cluster 2: Prof. Dovier e Prof. Policriti
 
-- nel quarto, il nodo Mizzaro ha alta centralità di betweenness e PageRank, indicando un ruolo di connessione e influenza all'interno del cluster.
+- cluster 3: Prof. Montanari
+
+- cluster 4: Prof. Mizzaro e Prof. Della Mea
 
 
 ```{r rete collab stat}
@@ -549,15 +575,32 @@ Transitività: livello di clustering elevato.
 
 Centralizzazione del grado: distribuzione dei gradi non è completamente uniforme, con alcuni autori che hanno un numero di collegamenti significativamente maggiore rispetto ad altri.
 
-## Collaborazione tra Paesi
+# Analisi Paesi
 
-Rete dei Paesi
+## Rete Paesi
+
+Grafo bipartito Papers x Paesi autori
 
 ```{r rete paesi}
 country <- metaTagExtraction(prova, Field = "AU_CO", sep = ";")
-countryNet <- cocMatrix(country, Field = "AU_CO", sep = ";")
+countryNet <- cocMatrix(country, Field = "AU_CO", sep = ";", type = "matrix")
 sort(Matrix::colSums(countryNet), decreasing = TRUE)[1:5]
 ```
+
+Quasi la totalità degli autori proviene dall'Italia / ha pubblicato quando si trovava in Italia.
+
+```{r}
+#affiliation <- metaTagExtraction(prova, Field = "AU_UN", sep = ";")
+#affNet <- cocMatrix(affiliation, Field = "AU_UN", sep = ";", type = "matrix")
+#sort(Matrix::colSums(affNet), decreasing = TRUE)[1:10]
+```
+
+
+```{r}
+#bmgraph(countryNet)
+```
+
+## Collaborazione tra Paesi
 
 ```{r rete coll paesi}
 # Create a country collaboration network
@@ -568,41 +611,91 @@ countryCol <- biblioNetwork(prova, analysis = "collaboration", network = "countr
 # Plot the network
 netCountry = networkPlot(countryCol, n = dim(countryCol)[1], Title = "Country Collaboration", type = "circle", size = TRUE, remove.multiple = TRUE,labelsize = 0.7, cluster="none")
 netCountry$nodeDegree
+
 ```
 
-ovviamente italia paese con piu collegamenti, segue usa, uk e spagna
+Vediamo che l'Italia è il paese con il grado più alto, il che indica che è il Paese con il maggior numero di collaborazioni all'interno della rete. Seguono USA, UK e Spagna.
 
 # Rete storica delle citazioni dirette
 
-La mappa storiografica è un grafo proposto da E. Garfield (2004) per
-rappresentare una mappa di rete cronologica delle citazioni dirette più
-rilevanti risultanti da una raccolta bibliografica.
+La mappa storiografica è un grafo proposto da E. Garfield (2004) per rappresentare una mappa di rete cronologica delle citazioni dirette più rilevanti risultanti da una raccolta bibliografica.
 
-La funzione genera una matrice cronologica della rete di citazioni
-dirette che può essere tracciata con histPlot:
+La funzione genera una matrice cronologica della rete di citazioni dirette
 
 ```{r rete storica cit, include=FALSE}
 # Create a historical citation network
 #options(width=130)
-histResults <- histNetwork(prova, min.citations = quantile(prova$TC,0.75, na.rm = TRUE), sep = ";")
+#histResults <- histNetwork(prova, min.citations = quantile(prova$TC,0.75, na.rm = TRUE), sep = ";")
+histResults <- histNetwork(prova, sep = ";")
 ```
 
-```{r plot rete storica cit}
+```{r plot rete storica cit, results='hide'}
 # Plot a historical co-citation network
-histPlotNet <- histPlot(histResults, n=20, size = 5, labelsize=3)
+histPlotNet <- histPlot(histResults, n=15, size = 5, labelsize=3)
 #ggplotly(histPlotNet$g)
 ```
+
+Vediamo una citazione da un articolo di Kevin Roitero, PhD del 2020 ad un articolo del Professor Mizzaro del 2007; più una serie di citazioni tra articoli dei Professori Molinari/Montanari/Bresolin dal 2016 al 2003.
+
+RIFORMULARE MEGLIO
+
 
 # Analisi parole chiave
 
 ## Rete parole chiave
 
-Rete Keyword Scopus
+Rete Bipartita Papers x Keyword Scopus
+
+Ogni paper ha associate delle parole chiave dal database di Scopus; le tre più presenti sono Computer Circuits, Semantics e Temporal Logic.
 
 ```{r rete keywords}
-idNet <- cocMatrix(prova, Field = "ID", sep = ";")
-sort(Matrix::colSums(idNet), decreasing = TRUE)[1:5]
+idNet <- cocMatrix(prova, Field = "ID", sep = ";", type = "matrix")
+#sort(Matrix::colSums(idNet), decreasing = TRUE)[1:5]
+#keyCount
 ```
+
+## Word cloud
+
+Dai dati della rete bipartita è possibile creare un df con le frequenze delle parole, da cui si può ricavare una word cloud.
+
+```{r create DT}
+keyCountDF <- data.frame(
+  keyword = c(
+    "COMPUTER CIRCUITS", "SEMANTICS", "TEMPORAL LOGIC", "LOGIC PROGRAMMING",
+    "ARTIFICIAL INTELLIGENCE", "INFORMATION RETRIEVAL", "AUTOMATA THEORY", "INTERVAL TEMPORAL LOGIC",
+    "ALGORITHMS", "MODEL CHECKING", "COMPUTABILITY AND DECIDABILITY", "COMPUTER SCIENCE",
+    "VIRTUAL REALITY", "FORMAL LOGIC", "COMPUTATION THEORY", "PROBLEM SOLVING",
+    "COMPUTER PROGRAMMING LANGUAGES", "SET THEORY", "MOBILE DEVICES", "MATHEMATICAL MODELS",
+    "ALGEBRA", "CALCULATIONS", "USER INTERFACES", "COMPUTER SIMULATION",
+    "COMPUTATIONAL COMPLEXITY", "CONSTRAINT THEORY", "HUMAN COMPUTER INTERACTION", "GRAPH THEORY",
+    "WEBSITES", "DEEP LEARNING", "CROWDSOURCING", "COMPUTER PROGRAMMING", "HUMAN",
+    "DATABASE SYSTEMS", "SATISFIABILITY PROBLEMS", "COMPUTERS", "MULTI AGENT SYSTEMS",
+    "LEARNING SYSTEMS", "ANSWER SET PROGRAMMING", "BIOINFORMATICS", "ENCODING (SYMBOLS)",
+    "SEARCH ENGINES", "KNOWLEDGE REPRESENTATION", "COMPUTATIONAL LINGUISTICS", "HUMANS",
+    "STOCHASTIC SYSTEMS", "ARTICLE", "CAMERAS", "DATA MINING", "EVALUATION",
+    "EXPRESSIVE POWER", "CONSTRAINT LOGIC PROGRAMMING", "QUALITY CONTROL", "THEOREM PROVING",
+    "LOGICAL FRAMEWORKS", "SOFTWARE ENGINEERING", "FORMAL LANGUAGES", "MODAL LOGIC",
+    "STATE OF THE ART", "LINEAR TEMPORAL LOGIC", "OPTIMIZATION", "VISUALIZATION",
+    "WORLD WIDE WEB", "DIFFERENTIATION (CALCULUS)", "FORMAL VERIFICATION", "HYBRID AUTOMATONS",
+    "INFORMATION RETRIEVAL SYSTEMS", "COMPUTATIONAL METHODS"),
+  frequency = c(
+    121, 97, 94, 91, 87, 71, 67, 67, 63, 60, 59, 55, 53, 52, 50, 49, 48, 47, 46, 44,
+    38, 38, 38, 37, 37, 37, 37, 33, 33, 31, 31, 31, 31, 30, 29, 28, 28, 27, 26, 26, 26, 25,
+    24, 24, 24, 24, 23, 23, 23, 23, 23, 22, 22, 22, 22, 22, 21, 21, 21, 20, 20, 20, 20, 19, 19, 19, 18, 18))
+
+```
+
+
+```{r save wordcloud}
+library(DT)
+saveWidget(wordcloud2(data = keyCountDF, shape = 'circle'), "wordCloudTry.html")
+```
+
+
+```{r word cloud, echo=FALSE}
+htmltools::tags$iframe(title = "Word Cloud", src = "wordCloud_2.html")
+```
+
 
 ## Rete co-occorrenze parole chiave
 
@@ -614,42 +707,59 @@ coOcNet$cluster_res
 #coOcNet$nodeDegree
 ```
 
-vediamo che ci sono quattro clusters, descriverli?
+<!-- (pr centrality: misura l'importanza di un nodo nella rete in base ai collegamenti in entrata da altri nodi. Un nodo con un valore alto è considerato più importante o influente.) -->
+
+Ci sono quattro cluster di parole chiave:
+
+- ognuno contiene parole di diversi campi di ricerca
+
+- il primo cluster presenta la btw_centrality media più alta; può significare che le parole sono concetti chiave in diverse discipline informatiche. Inoltre, la posizione centrale del cluster 1 nella rete di co-occorrenza suggerisce che funge da ponte tra diverse aree dell'informatica.
+
+- nel terzo cluster, la parola "computation theory" ha il valore di betwenness e closeness più alto; potrebbe fungere da concetto chiave che collega diverse aree dell'informatica teorica.
+
+- nel quarto cluster è presente la parola "problem solving" che ha il valore più alto di btw_centrality, suggerendo che potrebbe essere un concetto chiave che collega l'intelligenza artificiale e l'informatica con campi applicativi che richiedono la soluzione di problemi.
 
 ```{r rete cooc stat}
 coOcStat <- networkStat(coOc)
-summary(coOcStat, k = 10)
+#summary(coOcStat, k = 10)
 ```
 
-## Word cloud
-
-parole chiavi più presenti: computer circuits, semantics, logic
-programming
-
-```{r word cloud, echo=FALSE}
-htmltools::tags$iframe(title = "Word Cloud", src = "wordCloud_2.html")
-```
 
 ## Mappa tematica
 
-L'analisi delle co-parole chiave disegna cluster di parole chiave.
-Questi vengono considerati come temi, la cui densità e centralità
-possono essere utilizzate per classificare i temi e mapparli in un
-diagramma bidimensionale.
+L'analisi delle co-parole chiave disegna cluster di parole chiave. Questi vengono considerati come temi, la cui densità e centralità possono essere utilizzate per classificare i temi e mapparli in un diagramma bidimensionale.
 
-La mappa tematica è un diagramma molto intuitivo e possiamo analizzare i
-temi in base al quadrante in cui sono collocati: (1) quadrante in alto a
-destra: temi motori; (2) quadrante in basso a destra: temi di base; (3)
-quadrante in basso a sinistra: temi emergenti o in via di estinzione;
-(4) quadrante in alto a sinistra: temi molto specializzati/di nicchia.
+La mappa tematica è appunto basata sull'analisi della rete delle parole e sul clustering e si possono analizzare i temi in base al quadrante in cui sono collocati:
+
+1. quadrante in alto a destra: temi motori (cluster molto denso e molto centrale);
+
+2. quadrante in basso a destra: temi di base (cluster poco denso ma molto centrae);
+
+3. quadrante in basso a sinistra: temi emergenti o in via di estinzione (cluster poco denso e poco centrale);
+
+4. quadrante in alto a sinistra: temi molto specializzati/di nicchia (cluster molto denso e poco centrale).
 
 ```{r mappa tematica}
-map <- thematicMap(prova, field = "ID", n = 250, minfreq = 5)
+map <- thematicMap(prova, field = "ID", n = 500, minfreq = 5)
 plot(map$map)
-map$clusters
+#map$clusters
 #map$words
 ```
 
-# Conclusioni?
+```{r}
+clusters <-map$words %>%
+  arrange(Cluster, desc(Occurrences))
 
-Allora metti una piccola nota a piè pagina in cui dici che tutte le nozioni viste a lezione sono utilizzate ma non ri-definite
+clusters %>%
+  select(Cluster, Words, Occurrences) %>%
+  group_by(Cluster) %>%
+  mutate(n.rel = Occurrences / sum(Occurrences) ) %>%
+  slice(1:5)
+```
+La colonna r.rel si riferisce alle frequenze relative delle parole all'interno del cluster di appartenenza.
+
+Ad esempio, il cluster in cui spicca la parola "algorithms" è nel quadrante dei temi di base, mentre "crowdsourcing" si trova nel quadrante dei temi emergenti o in declino. Il cluster con "finite element method" si trova nel quadrante dei temi di nicchia.
+
+# Conclusione
+
+All'interno del dipartimento operano gruppi di ricerca che si distinguono per una notevole produttività scientifica, la quale si traduce in un significativo apporto alla letteratura di settore. Pur focalizzandosi su ambiti di ricerca differenti, i gruppi collaborano attivamente tra loro, favorendo lo scambio di conoscenze e competenze.
