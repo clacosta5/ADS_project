@@ -125,9 +125,9 @@ Ogni articolo del dataframe contiene svariati attributi tra cui: la lista di aut
 La tabella delle informazioni principali descrive le dimensioni della
 raccolta in termini di numero di documenti, numero di autori, numero di fonti, numero di parole chiave, durata e numero medio di citazioni.
 
-- docs per autori è calcolato come rapporto tra il numero totale di autori e il numero totale di articoli.
+- "docs" per autori è calcolato come rapporto tra il numero totale di autori e il numero totale di articoli.
 
-- co-Autori per articolo è calcolato come numero medio di co-autori per articolo.
+- "co-Autori" per articolo è calcolato come numero medio di co-autori per articolo.
 
 ```{r analisi descrittiva}
 results <- biblioAnalysis(prova, sep = ";")
@@ -185,7 +185,7 @@ docType <- ggplot(prova) +
 ggplotly(docType)
 ```
 
-Il tipo di pubblicazione piu presente è il conference paper, seguito da articoli e capitoli di libro.
+Il tipo di pubblicazione più presente è il conference paper, seguito da articoli e capitoli di libro.
 
 ## Analisi delle citazioni
 
@@ -200,7 +200,7 @@ mostCitedRef <- citations(prova, field = "article", sep = ";")
 cbind(mostCitedRef$Cited[1:10])
 ```
 
-Vediamo che 2 articoli del Prof. Montanari sono tra i più citati.
+Vediamo che 2 articoli del Profeessor Montanari sono tra i più citati.
 
 Per ottenere i primi autori più frequentemente citati:
 ```{r analisi ref aut}
@@ -488,7 +488,7 @@ Densità: indica una rete sparsa.
 
 Transitività: livello di clustering moderato.
 
-Centralizzazione del grado: misura la concentrazione dei collegamenti nella rete,  significa che la distribuzione dei gradi non è completamente uniforme, con alcuni autori che hanno un numero di collegamenti significativamente maggiore rispetto ad altri.
+Centralizzazione del grado: misura la concentrazione dei collegamenti nella rete, significa che la distribuzione dei gradi non è completamente uniforme, con alcuni autori che hanno un numero di collegamenti significativamente maggiore rispetto ad altri.
 
 ## Co-citazione bibliografica
 
@@ -536,7 +536,7 @@ Densità: indica una rete molto sparsa, la maggior parte delle possibili conness
 
 Transitività: valore molto alto, suggerisce la presenza di comunità di ricerca ben definite, dove gli autori tendono a citare altri autori appartenenti alla stessa comunità.
 
-Centralizzazione del grado: misura la concentrazione dei collegamenti nella rete, il valore basso ottenuto indica che i collegamenti sono distribuiti più uniformemente tra i nodi.Questo è coerente con la bassa densità della rete, dove nessun nodo detiene la maggior parte delle connessioni.
+Centralizzazione del grado: misura la concentrazione dei collegamenti nella rete, il valore basso ottenuto indica che i collegamenti sono distribuiti più uniformemente tra i nodi. Questo è coerente con la bassa densità della rete, dove nessun nodo detiene la maggior parte delle connessioni.
 
 ## Collaborazione autori
 
@@ -635,9 +635,7 @@ histPlotNet <- histPlot(histResults, n=15, size = 5, labelsize=3)
 #ggplotly(histPlotNet$g)
 ```
 
-Vediamo una citazione da un articolo di Kevin Roitero, PhD del 2020 ad un articolo del Professor Mizzaro del 2007; più una serie di citazioni tra articoli dei Professori Molinari/Montanari/Bresolin dal 2016 al 2003.
-
-RIFORMULARE MEGLIO
+Vediamo una citazione da un articolo di Kevin Roitero, PhD del 2020 ad un articolo del Professor Mizzaro del 2007, più una serie di citazioni tra articoli dei Professori Molinari/Montanari/Bresolin tra il 2016 e il 2003.
 
 
 # Analisi parole chiave
@@ -646,7 +644,7 @@ RIFORMULARE MEGLIO
 
 Rete Bipartita Papers x Keyword Scopus
 
-Ogni paper ha associate delle parole chiave dal database di Scopus; le tre più presenti sono Computer Circuits, Semantics e Temporal Logic.
+Ogni paper ha associate delle parole chiave dal database di Scopus: le tre più presenti sono Computer Circuits, Semantics e Temporal Logic.
 
 ```{r rete keywords}
 idNet <- cocMatrix(prova, Field = "ID", sep = ";", type = "matrix")
