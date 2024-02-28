@@ -187,22 +187,23 @@ ggplotly(docType)
 
 Il tipo di pubblicazione più presente è il conference paper, seguito da articoli e capitoli di libro.
 
-## Analisi delle citazioni
+## Analisi dei riferimenti citati
 
 <!-- La funzione citazioni genera la tabella di frequenza dei riferimenti più citati o dei primi autori più citati (dei riferimenti). (nel senso, sono tutte le references degli articoli della collezione) -->
-### Citazioni globali
 
-La citazione globale rappresenta il numero totale di citazioni ricevute da un documento da tutte le pubblicazioni indicizzate in una fonte - in questo caso Scopus.
+Possiamo analizzare la frequenza dei riferimenti/primi autori più citati nel dataset in analisi.
 
-Articoli più citati:
+<!-- La citazione globale rappresenta il numero totale di citazioni ricevute da un documento da tutte le pubblicazioni indicizzate in una fonte - in questo caso il dataset in analisi. -->
+
+Papers citati più frequentemente:
 ```{r analisi ref}
 mostCitedRef <- citations(prova, field = "article", sep = ";")
 cbind(mostCitedRef$Cited[1:10])
 ```
 
-Vediamo che 2 articoli del Profeessor Montanari sono tra i più citati.
+Vediamo che 2 articoli del Professor Montanari sono tra i più citati.
 
-Per ottenere i primi autori più frequentemente citati:
+Primi autori citati più frequentemente:
 ```{r analisi ref aut}
 mostCitedAut <- citations(prova, field = "author", sep = ";")
 cbind(mostCitedAut$Cited[1:15])
