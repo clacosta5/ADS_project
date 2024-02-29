@@ -495,6 +495,8 @@ Transitività: livello di clustering moderato.
 
 Centralizzazione del grado: misura la concentrazione dei collegamenti nella rete, significa che la distribuzione dei gradi non è completamente uniforme, con alcuni autori che hanno un numero di collegamenti significativamente maggiore rispetto ad altri.
 
+Lunghezza media dei percorsi: molto breve.
+
 ## Co-citazione bibliografica
 
 Si parla di co-citazione di due articoli quando **entrambi sono citati in un terzo articolo**. La co-citazione è la frequenza con cui due documenti sono citati insieme da altri documenti. 
@@ -541,6 +543,8 @@ Transitività: valore molto alto, suggerisce la presenza di comunità di ricerca
 
 Centralizzazione del grado: misura la concentrazione dei collegamenti nella rete, il valore basso ottenuto indica che i collegamenti sono distribuiti più uniformemente tra i nodi. Questo è coerente con la bassa densità della rete, dove nessun nodo detiene la maggior parte delle connessioni.
 
+Lunghezza media dei percorsi: breve.
+
 ## Collaborazione autori
 
 La rete di collaborazione scientifica è una rete in cui i nodi sono gli autori e i legami sono le coautorialità, in quanto quest'ultima è una delle forme più documentate di collaborazione scientifica (Glanzel, 2004).
@@ -581,6 +585,8 @@ Densità: rete molto sparsa.
 Transitività: livello di clustering elevato.
 
 Centralizzazione del grado: distribuzione dei gradi non è completamente uniforme, con alcuni autori che hanno un numero di collegamenti significativamente maggiore rispetto ad altri.
+
+Lunghezza media dei percorsi: molto breve.
 
 # Analisi Paesi
 
@@ -746,7 +752,7 @@ Essa consente di analizzare i temi in base al quadrante in cui sono collocati:
 
 1. quadrante in alto a destra: temi motori (cluster molto denso e molto centrale);
 
-2. quadrante in basso a destra: temi di base (cluster poco denso ma molto centrae);
+2. quadrante in basso a destra: temi di base (cluster poco denso ma molto centrale);
 
 3. quadrante in basso a sinistra: temi emergenti o in via di estinzione (cluster poco denso e poco centrale);
 
@@ -776,4 +782,5 @@ clusters %>%
 
 # Conclusione
 
+<!-- nessuna rete ha una distribuzione dei nodi power-law, ma hanno lunghezza media dei cammini breve -->
 All'interno del dipartimento operano gruppi di ricerca che si distinguono per una notevole produttività scientifica, la quale si traduce in un significativo apporto alla letteratura di settore. Pur focalizzandosi su ambiti di ricerca differenti, i gruppi collaborano attivamente tra loro, favorendo lo scambio di conoscenze e competenze.
