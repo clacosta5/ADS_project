@@ -125,9 +125,9 @@ Ogni articolo del dataframe contiene svariati attributi tra cui: la lista di aut
 La tabella delle informazioni principali descrive le dimensioni della
 raccolta in termini di numero di documenti, numero di autori, numero di fonti, numero di parole chiave, durata e numero medio di citazioni.
 
-- "docs" per autori è calcolato come rapporto tra il numero totale di autori e il numero totale di articoli.
+- "docs per autori" è calcolato come rapporto tra il numero totale di autori e il numero totale di articoli.
 
-- "co-Autori" per articolo è calcolato come numero medio di co-autori per articolo.
+- "co-autori per articolo" è calcolato come numero medio di co-autori per articolo.
 
 ```{r analisi descrittiva}
 results <- biblioAnalysis(prova, sep = ";")
@@ -311,11 +311,11 @@ filter(topAU$dfAU, freq == max(topAU$dfAU$freq))
 
 La legge di Lotka descrive la frequenza di pubblicazione degli autori in un determinato campo come una legge quadratica inversa, in cui il numero di autori che pubblicano un certo numero di articoli è un rapporto fisso rispetto al numero di autori che pubblicano un singolo articolo.
 
-Sia $X$ il numero di pubblicazioni, $Y$ il numero di autori con $X$ pubblicazioni e $\beta$ una costante che dipende dal campo specifico. La legge di Lotka afferma che $Y / X^{\beta}$.
+Significa quindi che pochi autori contribuiscono alla maggior parte dei lavori e molti o la maggior parte di essi contribuiscono a poche pubblicazioni.
+
+Sia $X$ il numero di pubblicazioni, $Y$ il numero di autori con $X$ pubblicazioni e $\beta$ una costante che dipende dal campo specifico. La legge di Lotka afferma che $Y \propto X^{- \beta}$.
 
 Nella pubblicazione originale Lotka sosteneva che $\beta=2$. Ricerche successive hanno dimostrato che $\beta$ varia a seconda della disciplina.
-
-Significa quindi che pochi autori contribuiscono alla maggior parte dei lavori e molti o la maggior parte di essi contribuiscono a poche pubblicazioni.
 
 Viene stimato il coefficiente $\beta$ della collezione bibliografica e valutata, attraverso un test statistico, la somiglianza di questa distribuzione empirica con quella teorica.
 
@@ -460,7 +460,6 @@ L'accoppiamento bibliografico tra autori è una misura di quanto due autori cond
 ```{r accoppiamento autori}
 autCoupNet <- biblioNetwork(prova, analysis = "coupling", network = "authors", sep = ";")
 net = networkPlot(autCoupNet,  normalize = "association", weighted=NULL, n = 25, Title = "Authors' Coupling", type = "auto", size.cex=TRUE, remove.multiple=TRUE, labelsize=2, label.n=25, label.cex=TRUE, label.color = TRUE, halo = FALSE)
-net$cluster_res
 #net$nodeDegree
 ```
 
@@ -479,6 +478,11 @@ Il primo cluster potrebbe indicare un gruppo di autori affermati e ben collegati
 Il secondo cluster potrebbe rappresentare autori emergenti o in via di consolidamento.
 
 Il terzo cluster potrebbe includere autori con una minore produzione scientifica o focalizzati su nicchie specifiche. -->
+
+```{r net cluster centrality}
+net$cluster_res
+```
+
 
 ```{r accop autori stat}
 autCoupstat <- networkStat(autCoupNet)
@@ -511,12 +515,6 @@ coCitNet <- biblioNetwork(prova, analysis = "co-citation", network = "references
 htmltools::tags$iframe(title = "Co-Citation Network", src = "coCitationNet.html")
 ```
 
-
-```{r import csv as dataframe}
-coCitNetValues <- read.csv("CoCitation_Network.csv")
-coCitNetValues
-```
-
 ### Analisi della rete
 
 Il nodo con la centralità di Betweennees più alta è Allen j.f. 1983-1, con 361.6. Il nodo con la centralità di PageRank più alta è Moszkowski b. 1983, con 0.0414.
@@ -527,6 +525,10 @@ La centralità degli autori varia a seconda del cluster di appartenenza e delle 
 
 Alcuni autori, come Moszkowski b. 1983, Allen j.f. 1983-1, Halpern j.y. 1991-1, Bresolin d. 2009 e Venema y. 1991 presentano valori di centralità più alti rispetto ad altri, suggerendo un ruolo potenzialmente più rilevante nella rete.
 
+```{r import csv as dataframe}
+coCitNetValues <- read.csv("CoCitation_Network.csv")
+coCitNetValues
+```
 
 ```{r rete citazioni stat}
 netstat <- networkStat(coCitNet)
@@ -550,7 +552,6 @@ L'elemento diagonale $ac_i$ è il numero di papers di cui il ricercatore $i$ è 
 ```{r collaborazione aut}
 autColl <- biblioNetwork(prova, analysis = "collaboration", network = "authors", sep = ";")
 autnetcoll = networkPlot(autColl,  normalize = "association", weighted=NULL, n = 30, Title = "Authors' Collaboration", type = "auto", size.cex=TRUE, remove.multiple=TRUE, labelsize=2, label.n=30, label.cex=TRUE, label.color = TRUE, halo = FALSE)
-autnetcoll$cluster_res
 #autnetcoll$nodeDegree
 ```
 
@@ -563,6 +564,11 @@ Sono presenti 4 clusters ed in ognuno di essi è presente almeno un nodo con dei
 - cluster 3: Prof. Montanari
 
 - cluster 4: Prof. Mizzaro e Prof. Della Mea
+
+
+```{r autnetcoll cluster centrality}
+autnetcoll$cluster_res
+```
 
 
 ```{r rete collab stat}
@@ -611,17 +617,20 @@ countryCol <- biblioNetwork(prova, analysis = "collaboration", network = "countr
 
 # Plot the network
 netCountry = networkPlot(countryCol, n = dim(countryCol)[1], Title = "Country Collaboration", type = "circle", size = TRUE, remove.multiple = TRUE,labelsize = 0.7, cluster="none")
-netCountry$nodeDegree
-
 ```
 
 Vediamo che l'Italia è il paese con il grado più alto, il che indica che è il Paese con il maggior numero di collaborazioni all'interno della rete. Seguono USA, UK e Spagna.
+
+```{r netCountry degree}
+netCountry$nodeDegree
+```
+
 
 # Rete storica delle citazioni dirette
 
 La mappa storiografica è un grafo proposto da E. Garfield (2004) per rappresentare una mappa di rete cronologica delle citazioni dirette più rilevanti risultanti da una raccolta bibliografica.
 
-La funzione genera una matrice cronologica della rete di citazioni dirette
+<!-- La funzione genera una matrice cronologica della rete di citazioni dirette -->
 
 ```{r rete storica cit, include=FALSE}
 # Create a historical citation network
@@ -645,7 +654,7 @@ Vediamo una citazione da un articolo di Kevin Roitero, PhD del 2020 ad un artico
 
 Rete Bipartita Papers x Keyword Scopus
 
-Ogni paper ha associate delle parole chiave dal database di Scopus: le tre più presenti sono Computer Circuits, Semantics e Temporal Logic.
+Ogni paper ha associate delle parole chiave dal database di Scopus.
 
 ```{r rete keywords}
 idNet <- cocMatrix(prova, Field = "ID", sep = ";", type = "matrix")
@@ -678,7 +687,7 @@ keyCountDF <- data.frame(
     "WORLD WIDE WEB", "DIFFERENTIATION (CALCULUS)", "FORMAL VERIFICATION", "HYBRID AUTOMATONS",
     "INFORMATION RETRIEVAL SYSTEMS", "COMPUTATIONAL METHODS"),
   frequency = c(
-    121, 97, 94, 91, 87, 71, 67, 67, 63, 60, 59, 55, 53, 52, 50, 49, 48, 47, 46, 44,
+    121, 99, 95, 96, 87, 71, 67, 67, 63, 60, 59, 55, 53, 52, 50, 49, 48, 47, 46, 44,
     38, 38, 38, 37, 37, 37, 37, 33, 33, 31, 31, 31, 31, 30, 29, 28, 28, 27, 26, 26, 26, 25,
     24, 24, 24, 24, 23, 23, 23, 23, 23, 22, 22, 22, 22, 22, 21, 21, 21, 20, 20, 20, 20, 19, 19, 19, 18, 18))
 
@@ -695,6 +704,7 @@ saveWidget(wordcloud2(data = keyCountDF, shape = 'circle'), "wordCloudTry.html")
 htmltools::tags$iframe(title = "Word Cloud", src = "wordCloud_2.html")
 ```
 
+Le tre parole più presenti sono Computer Circuits (121), Semantics (99) e Logic Programming (96).
 
 ## Rete co-occorrenze parole chiave
 
@@ -702,7 +712,6 @@ htmltools::tags$iframe(title = "Word Cloud", src = "wordCloud_2.html")
 # An example of a classical keyword co-occurrences network
 coOc <- biblioNetwork(prova, analysis = "co-occurrences", network = "keywords", sep = ";")
 coOcNet = networkPlot(coOc,  normalize = "association", weighted=T, n = 25, Title = "Keywords Co-Occurrence", type = "fruchterman", size.cex=TRUE, remove.multiple=TRUE, labelsize=2, label.n=25, label.cex=TRUE, label.color = TRUE, halo = FALSE)
-coOcNet$cluster_res
 #coOcNet$nodeDegree
 ```
 
@@ -718,6 +727,11 @@ Ci sono quattro cluster di parole chiave:
 
 - nel quarto cluster è presente la parola "problem solving" che ha il valore più alto di btw_centrality, suggerendo che potrebbe essere un concetto chiave che collega l'intelligenza artificiale e l'informatica con campi applicativi che richiedono la soluzione di problemi.
 
+```{r coOcNet cluster centrality}
+coOcNet$cluster_res
+```
+
+
 ```{r rete cooc stat}
 coOcStat <- networkStat(coOc)
 #summary(coOcStat, k = 10)
@@ -726,9 +740,9 @@ coOcStat <- networkStat(coOc)
 
 ## Mappa tematica
 
-L'analisi delle co-parole chiave disegna cluster di parole chiave. Questi vengono considerati come temi, la cui densità e centralità possono essere utilizzate per classificare i temi e mapparli in un diagramma bidimensionale.
+L'analisi di co-occorrenza delle parole chiave genera cluster tematici, la cui densità e centralità permettono di classificarli e mapparli in un diagramma bidimensionale, creando una mappa tematica. 
 
-La mappa tematica è appunto basata sull'analisi della rete delle parole e sul clustering e si possono analizzare i temi in base al quadrante in cui sono collocati:
+Essa consente di analizzare i temi in base al quadrante in cui sono collocati:
 
 1. quadrante in alto a destra: temi motori (cluster molto denso e molto centrale);
 
@@ -745,7 +759,11 @@ plot(map$map)
 #map$words
 ```
 
-```{r}
+La colonna r.rel si riferisce alle frequenze relative delle parole all'interno del cluster di appartenenza.
+
+Ad esempio, il cluster in cui spicca la parola "algorithms" è nel quadrante dei temi di base, mentre "crowdsourcing" si trova nel quadrante dei temi emergenti o in declino. Il cluster con "finite element method" si trova nel quadrante dei temi di nicchia.
+
+```{r cluster analysis}
 clusters <-map$words %>%
   arrange(Cluster, desc(Occurrences))
 
@@ -755,9 +773,6 @@ clusters %>%
   mutate(n.rel = Occurrences / sum(Occurrences) ) %>%
   slice(1:5)
 ```
-La colonna r.rel si riferisce alle frequenze relative delle parole all'interno del cluster di appartenenza.
-
-Ad esempio, il cluster in cui spicca la parola "algorithms" è nel quadrante dei temi di base, mentre "crowdsourcing" si trova nel quadrante dei temi emergenti o in declino. Il cluster con "finite element method" si trova nel quadrante dei temi di nicchia.
 
 # Conclusione
 
