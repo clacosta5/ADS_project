@@ -114,7 +114,7 @@ Per supporto all'analisi ho utilizzato una libreria, [Bibliometrix](https://www.
 ## Fonte dei dati
 
 I dati analizzati in questo progetto sono stati scaricati (ultimo download: 12/02/2024) da
-[Scopus](https://www.scopus.com/search/form.uri?display=basic&zone=header&origin=searchbasic#basic), uno dei principali dabatase bibliografici. Sono stati selezionati 31 autori del DMIF, tra docenti e dottorandi.
+[Scopus](https://www.scopus.com/search/form.uri?display=basic&zone=header&origin=searchbasic#basic), uno dei principali dabatase bibliografici. E' stata selezionata la sottoarea della computer science e da successivamente sono stati selezionati 31 autori del DMIF, tra docenti e dottorandi.
 
 Ogni articolo del dataframe contiene svariati attributi tra cui: la lista di autori, il titolo del documento, la sorgente di pubblicazione, il tipo di documento, le parole chiavi degli autori, le references, il numero di citazioni, l'anno di pubblicazione.
 
