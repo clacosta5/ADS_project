@@ -1,6 +1,6 @@
 ---
 title: "Analisi bibliometrica - I docenti del DMIF"
-author: "Claudia Costa"
+author: "Claudia Costa - 153256"
 date: "`r Sys.Date()`"
 css: stileProgetto.css
 output: 
@@ -127,7 +127,7 @@ Il progetto si focalizza sull'analisi della produzione scientifica dei docenti d
 
 - gli autori più prolifici.
 
-Per supporto all'analisi ho utilizzato una libreria, [Bibliometrix](https://www.bibliometrix.org/home/) [@bibliometrix], sviluppata da due docenti dell'Università di Napoli.
+Per supporto all'analisi è stata utilizzata una libreria, [Bibliometrix](https://www.bibliometrix.org/home/) [@bibliometrix], sviluppata da due docenti dell'Università di Napoli.
 
 ## Fonte dei dati
 
@@ -159,32 +159,32 @@ gs <- plot.bibliometrix(x = results, k = 10, pause = FALSE)
 ```{r}
 ggplotly(gs$MostProdAuthors)
 ```
-Prof. Montanari autore più produttivo con 200 articoli
+Autore più produttivo: Prof. Montanari con 200 articoli.
 
 ```{r}
 ggplotly(gs$MostProdCountries)
 #SCP: Single Country Publications
 #MCP: Multiple Country Publications
 ```
-Italia paese più produttivo
+Paese più produttivo: Italia.
 
 ```{r}
 plot(gs$AnnualScientProd)
 ```
 
-anno più produttivo: 2023 con 87 pubblicazioni
+Anno più produttivo: 2023 con 87 pubblicazioni.
 
 ```{r}
 plot(gs$AverArtCitperYear)
 ```
 
-anno con media citazioni in articoli più alta: 2018
+Anno con media citazioni in articoli più alta: 2018.
 
 ```{r}
 plot(gs$AverTotCitperYear)
 ```
 
-anno con più citazioni: 1987
+Anno con più citazioni: 1987.
 
 
 ### Documenti per tipo
@@ -202,13 +202,13 @@ docType <- ggplot(newProva) +
 ggplotly(docType)
 ```
 
-Il tipo di pubblicazione più presente è il conference paper, seguito da articoli e capitoli di libro.
+"Tipo di pubblicazione più presente: conference paper, seguito da articoli e capitoli di libro.
 
 ## Analisi dei riferimenti citati
 
 <!-- La funzione citazioni genera la tabella di frequenza dei riferimenti più citati o dei primi autori più citati (dei riferimenti). (nel senso, sono tutte le references degli articoli della collezione) -->
 
-Possiamo analizzare la frequenza dei riferimenti/primi autori più citati nel dataset in analisi.
+E' possibile analizzare la frequenza dei riferimenti/primi autori più citati nel dataset in analisi.
 
 <!-- La citazione globale rappresenta il numero totale di citazioni ricevute da un documento da tutte le pubblicazioni indicizzate in una fonte - in questo caso il dataset in analisi. -->
 
@@ -218,7 +218,7 @@ mostCitedRef <- citations(newProva, field = "article", sep = ";")
 cbind(mostCitedRef$Cited[1:10])
 ```
 
-Vediamo che 2 articoli del Professor Montanari sono tra i più citati.
+Si noti che 2 articoli del Professor Montanari sono tra i più citati.
 
 Primi autori citati più frequentemente:
 ```{r analisi ref aut}
@@ -227,7 +227,7 @@ cbind(mostCitedAut$Cited[1:15])
 #cbind(CR$Cited[c(-2, 1:14)])
 ```
 
-Vediamo che gli autori più frequentemente citati sono i Professori Montanari, Dovier, Mizzaro e Policriti.
+E' possibile notare che gli autori più frequentemente citati sono i Professori Montanari, Dovier, Mizzaro e Policriti.
 
 ## H-index degli autori
 
@@ -332,7 +332,7 @@ Densità: indica una rete sparsa, poco collegata.
 
 Transitività: rete poco clusterizzata.
 
-Centralizzazione del grado: misura che valuta quanto una rete è centralizzata in base alla distribuzione del grado dei nodi. Ci sono alcuni nodi con un numero di collegamenti significativamente maggiore rispetto alla maggior parte degli altri nodi, ma la distribuzione dei gradi non è uguale.
+Centralizzazione del grado: misura che valuta quanto una rete è centralizzata in base alla distribuzione del grado dei nodi. Vi sono alcuni nodi con un numero di collegamenti significativamente maggiore rispetto alla maggior parte degli altri nodi, ma la distribuzione dei gradi non è uguale.
 <!-- per essere uguale il valore deve essere 0 -->
 
 Lunghezza media dei percorsi: molto breve, rete compatta e ben collegata.
@@ -425,7 +425,6 @@ Le altre misure di centralità (betweenness, che misura il numero di cammini pi�
 -->
 
 ### Power measure
-Analizzo la misura di potenza, che dice che un nodo è potente se è connesso a nodi non potenti.
 
 ```{r}
 library(lpSolve)
@@ -601,7 +600,7 @@ author_power[1:15, ]
 
 ```
 
-Ricavo che i nodi più potenti all'interno della rete delle collaborazioni sono il Prof. Miculan (13.8% del potere totale) e il Prof. Policriti (9.2% del potere totale).
+Analizzando la misura di potenza, la quale afferma che un nodo è potente se è connesso a nodi non potenti, si ricava che i nodi più potenti all'interno della rete delle collaborazioni sono il Prof. Miculan (13.8% del potere totale) e il Prof. Policriti (9.2% del potere totale).
 
 <!-- Per ulteriore controllo, calcolo la correlazione tra il grado del nodo e il potere: 0.6162251; vuol dire che c'è una piccola correlazione. -->
 
@@ -628,7 +627,7 @@ keyword_data <- data.frame(
 
 ### Word cloud
 
-Dai dati della rete bipartita è possibile creare un df con le frequenze delle parole, da cui si può ricavare una word cloud.
+Dai dati della rete bipartita è possibile creare un dataframe con le frequenze delle parole, da cui si può ricavare una word cloud.
 
 ```{r save wordcloud}
 library(DT)
@@ -685,13 +684,13 @@ L'analisi di co-occorrenza delle parole chiave genera cluster tematici, la cui d
 
 Essa consente di analizzare i temi in base al quadrante in cui sono collocati:
 
-1. quadrante in alto a destra: temi motori (cluster molto denso e molto centrale);
+1. quadrante in alto a sinistra: temi molto specializzati/di nicchia (cluster molto denso e poco centrale);
 
-2. quadrante in basso a destra: temi di base (cluster poco denso ma molto centrale);
+2. quadrante in alto a destra: temi motori (cluster molto denso e molto centrale);
 
 3. quadrante in basso a sinistra: temi emergenti o in via di estinzione (cluster poco denso e poco centrale);
 
-4. quadrante in alto a sinistra: temi molto specializzati/di nicchia (cluster molto denso e poco centrale).
+4. quadrante in basso a destra: temi di base (cluster poco denso ma molto centrale).
 
 ```{r mappa tematica}
 map <- thematicMap(newProva, field = "ID", n = 500, minfreq = 5)
@@ -716,7 +715,11 @@ clusters %>%
   slice(1:5)
 ```
 
-# Conclusione
+# Conclusione FINIRE
+
+SCRIVERE EFFETTIVAMENTE COSA HO RICAVATO DALLE PREMESSE INIZIALI + LE COSE IN PIU
+
+TUTTE LE RETI HANNO LA PROPRIETà PICCOLO MONDO
 
 L'analisi bibliometrica ha evidenziato diversi aspetti importanti, anche attraverso l'analisi delle varie reti.
 
@@ -728,6 +731,6 @@ La rete di collaborazione tra autori ha rivelato una struttura coesa con alcuni 
 La rete delle co-occorrenze delle parole chiave ha messo in luce le principali aree di ricerca del dipartimento e le connessioni tematiche tra di esse. Alcune parole chiave emergono come particolarmente centrali e frequenti, riflettendo le aree di maggiore interesse e attività all'interno del dipartimento.
 
 
-In sintesi, posso affermare che all'interno del dipartimento operano gruppi di ricerca che si distinguono per una notevole produttività scientifica, la quale si traduce in un significativo apporto alla letteratura di settore. Pur focalizzandosi su ambiti di ricerca differenti, i gruppi collaborano attivamente tra loro, favorendo lo scambio di conoscenze e competenze.
+In sintesi, si può dire che all'interno del dipartimento operano gruppi di ricerca che si distinguono per una notevole produttività scientifica, la quale si traduce in un significativo apporto alla letteratura di settore. Pur focalizzandosi su ambiti di ricerca differenti, i gruppi collaborano attivamente tra loro, favorendo lo scambio di conoscenze e competenze.
 
 <!-- nessuna rete ha una distribuzione dei nodi power-law (hanno distribuzione quasi uguale), ma hanno lunghezza media dei cammini breve -->
