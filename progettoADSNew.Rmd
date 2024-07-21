@@ -79,8 +79,18 @@ source("histPlot.R", local = knitr::knit_global())
 # or sys.source("your-script.R", envir = knitr::knit_global())
 ```
 
-```{r script networdPlot, include=FALSE}
+```{r script networkPlot, include=FALSE}
 source("networkPlot.R", local = knitr::knit_global())
+# or sys.source("your-script.R", envir = knitr::knit_global())
+```
+
+```{r script networkStat, include=FALSE}
+source("networkStat.R", local = knitr::knit_global())
+# or sys.source("your-script.R", envir = knitr::knit_global())
+```
+
+```{r script hIndex, include=FALSE}
+source("Hindex.R", local = knitr::knit_global())
 # or sys.source("your-script.R", envir = knitr::knit_global())
 ```
 
@@ -122,9 +132,9 @@ Per supporto all'analisi ho utilizzato una libreria, [Bibliometrix](https://www.
 ## Fonte dei dati
 
 I dati analizzati in questo progetto sono stati scaricati (ultimo download: 15/07/2024) da
-[Scopus](https://www.scopus.com/search/form.uri?display=basic&zone=header&origin=searchbasic#basic), uno dei principali dabatase bibliografici. E' stata selezionata la sottoarea della computer science e da successivamente sono stati selezionati 31 autori del DMIF, tra docenti e dottorandi.
+[Scopus](https://www.scopus.com/search/form.uri?display=basic&zone=header&origin=searchbasic#basic), uno dei principali dabatase bibliografici. E' stata selezionata la sotto area "computer science" e successivamente sono stati selezionati 31 autori del DMIF, tra docenti e dottorandi.
 
-Ogni articolo del dataframe contiene svariati attributi tra cui: la lista di autori, il titolo del documento, la sorgente di pubblicazione, il tipo di documento, le parole chiavi degli autori, le references, il numero di citazioni, l'anno di pubblicazione.
+Ogni articolo del dataframe contiene svariati attributi tra cui: la lista di autori, il titolo del documento, la sorgente di pubblicazione, il tipo di documento, le parole chiavi degli autori, le references, il numero di citazioni e l'anno di pubblicazione.
 
 # Analisi bibliometrica
 
@@ -140,8 +150,8 @@ raccolta in termini di numero di documenti, numero di autori, numero di fonti, n
 ```{r analisi descrittiva}
 results <- biblioAnalysis(newProva, sep = ";")
 options(width=100)
-S <- summary(object = results, k = 15, pause = FALSE)
-gs <- plot.bibliometrix(x = results, k = 15, pause = FALSE)
+S <- summary(object = results, k = 10, pause = FALSE)
+gs <- plot.bibliometrix(x = results, k = 10, pause = FALSE)
 
 ```
 
@@ -149,14 +159,14 @@ gs <- plot.bibliometrix(x = results, k = 15, pause = FALSE)
 ```{r}
 ggplotly(gs$MostProdAuthors)
 ```
-Prof. Montanari autore più produttivo con 196 articoli
+Prof. Montanari autore più produttivo con 200 articoli
 
 ```{r}
 ggplotly(gs$MostProdCountries)
 #SCP: Single Country Publications
 #MCP: Multiple Country Publications
 ```
-Italia paese più produttivo, alcuni autori erano in altri paesi (esempio Svizzera, UK) quando hanno pubblicato
+Italia paese più produttivo
 
 ```{r}
 plot(gs$AnnualScientProd)
@@ -223,24 +233,16 @@ Vediamo che gli autori più frequentemente citati sono i Professori Montanari, D
 
 L'h-index è una metrica a livello di autore che cerca di misurare sia la produttività che l'impatto citazionale delle pubblicazioni.
 
-L'indice si basa sull'insieme degli articoli più citati dello scienziato e sul numero di citazioni ricevute in altre pubblicazioni. L'indice è strutturato per quantificare mediante un singolo indice numerico non solo la produzione, ma anche l'influenza di uno scienziato, distinguendolo da chi avesse pubblicato molti articoli ma di scarso interesse.
+L’indice si basa sull’insieme degli articoli più citati dello scienziato e sul numero di citazioni ricevute in altre pubblicazioni. L’indice è strutturato per quantificare mediante un singolo indice numerico non solo la produzione, ma anche l’influenza di uno scienziato, distinguendolo da chi ha pubblicato molti articoli ma di scarso interesse.
 
-Quindi uno scienziato ha un indice n se almeno n lavori tra quelli che ha pubblicato sono stati citati almeno n volte ciascuno.
+Quindi, uno scienziato ha un indice n se almeno n lavori tra quelli che ha pubblicato sono stati citati almeno n volte ciascuno.
 
-L'indice è definito in modo tale che sull'insieme dato di articoli, ordinati in ordine decrescente di citazioni ricevute, il valore dell'indice-g è assegnato quando i primi g articoli hanno ricevuto cumulativamente $g^2$ citazioni.
+L'i10-index consiste nel numero di pubblicazioni di uno stesso autore con almeno 10 citazioni.
+
+<!-- L'indice è definito in modo tale che sull'insieme dato di articoli, ordinati in ordine decrescente di citazioni ricevute, il valore dell'indice-g è assegnato quando i primi g articoli hanno ricevuto cumulativamente $g^2$ citazioni.
 $$g^2 \leq \sum_{i \leq g} c_i$$
 
-L' M-index è definito come h/n, dove h è l' H-index e n è il numero di anni trascorsi dalla prima pubblicazione del ricercatore.
-
-```{r}
-#indices <- Hindex(prova, field = "author", elements=c("PIAZZA C", "DOVIER A", "ROMANELLO R"), sep = ";", years = 10)
-
-#indices$H
-```
-
-```{r}
-#indices$CitationList
-```
+L' M-index è definito come h/n, dove h è l' H-index e n è il numero di anni trascorsi dalla prima pubblicazione del ricercatore. -->
 
 H-index dei primi 10 autori più produttivi (in questa raccolta):
 
@@ -252,12 +254,12 @@ indicesAll <- Hindex(newProva, field = "author", elements=authors, sep = ";", ye
 slice(indicesAll$H, order(indicesAll$H$h_index, decreasing = TRUE))
 ```
 
-Gli autori con l'H-index più alto sono i Prof. Chittaro, Prof. Montanari e Prof. Mizzaro.
+Gli autori con l'H-index più alto sono i Prof. Chittaro (39), Prof. Montanari (23) e Prof. Mizzaro (20).
 
 
 # Matrici di rete bibliografica
 
-Gli attributi del paper sono collegati tra loro attraverso il paper stesso: autore/i alla rivista, parole chiave alla data di pubblicazione, ecc. Alcune delle analisi descrittive viste in precedenza si possono visualizzare attraverso reti bipartite.
+Gli attributi dei paper sono collegati tra loro attraverso il paper stesso: autore/i alla rivista, parole chiave alla data di pubblicazione, ecc. Alcune delle analisi descrittive viste in precedenza si possono visualizzare attraverso reti bipartite.
 
 
 ## Reti bipartite
@@ -272,9 +274,9 @@ manSource <- cocMatrix(newProva, Field = "SO", sep = ";", type = "matrix")
 
 L'oggetto è una matrice binaria rettangolare che rappresenta una rete bipartita in cui le righe e le colonne sono, in questo caso, rispettivamente papers e fonti.
 
-L'elemento generico $bip_{ij}$ è 1 se il paper i è stato pubblicato nella fonte j, 0 altrimenti.
+L'elemento generico $bip_{ij}$ è 1 se il paper $i$ è stato pubblicato nella fonte $j$, 0 altrimenti.
 
-La somma della colonna j-esima $bip_j$ rappresenta il numero di papers pubblicati nella fonte j.
+La somma della colonna $j$-esima $bip_j$ rappresenta il numero di papers pubblicati nella fonte $j$.
 
 Fonti di pubblicazione più rilevanti:
 
@@ -283,7 +285,7 @@ sort(Matrix::colSums(manSource), decreasing = TRUE)[1:5]
 ```
 
 
-Rete degli autori: paper x autore, conta quanti articoli fatti da autori
+Rete degli autori: Paper x Autore, conta quanti articoli fatti da autori.
 
 ```{r rete autori}
 autNet <- cocMatrix(newProva, Field = "AU", sep = ";", type = "matrix")
@@ -298,9 +300,9 @@ Le pubblicazioni scientifiche contengono riferimenti ad altri lavori scientifici
 Due autori sono accoppiati bibliograficamente **se almeno una fonte citata compare nelle loro pubblicazioni**.
 <!-- (papers A e B sono accoppiati bibliograficamente perchè hanno citato entrambi papers C, D, E) -->
 
-Rete di accoppiamento: $$B = A\cdot A^T$$ dove A è una rete bipartita.  Due autori sono collegati da un arco nella rete se citano insieme uno o più documenti.
+Rete di accoppiamento: $$B = A\cdot A^T$$ dove A è una rete bipartita (Papers x Citazioni).  Due autori sono collegati da un arco nella rete se citano insieme uno o più documenti.
 
-L'elemento $b_{i,j}$ indica quanti accoppiamenti bibliografici esistono tra i e j. La forza dell'accoppiamento di due autori, i e j, è definita dal numero di riferimenti che gli autori hanno in comune.
+L'elemento $b_{i,j}$ indica quanti accoppiamenti bibliografici esistono tra $i$ e $j$. La forza dell'accoppiamento di due autori, $i$ e $j$, è definita dal numero di riferimenti che gli autori hanno in comune.
 
 L'accoppiamento bibliografico tra autori è una misura di quanto due autori condividono riferimenti comuni nelle loro pubblicazioni. In altre parole, quanti autori citano gli stessi lavori nelle loro ricerche.
 
@@ -312,32 +314,34 @@ g1 <- graph_from_adjacency_matrix(autCoupNet, mode = "undirected", diag = FALSE)
 #netCoup$nodeDegree
 ```
 
-### Analisi della rete RIVEDERE BENE
+### Analisi della rete
 
-Il nodo più centrale della rete risulta essere il Professor Montanari, con i valori più alti di tutti in queste tre metriche ^[Tutte le nozioni viste a lezione sono utilizzate ma non ri-definite.].
-
-Il Professor Sciavicco si posiziona in alto per la betweenness centrality, indicando un ruolo di ponte tra diverse comunità di autori.
+Il nodo più centrale della rete risulta essere il Professor Montanari, con i valori più alti di tutti nelle metriche ^[Tutte le nozioni viste a lezione sono utilizzate ma non ri-definite.].
 
 ```{r net cluster centrality}
 netCoup$cluster_res
 ```
 
 ```{r accop autori stat}
-autCoupstat <- networkStat(autCoupNet)
+autCoupstat <- networkStat(autCoupNet, stat = "all")
+#autCoupstat$network$networkCentrEigen
 summary(autCoupstat)
 ```
 
-Densità: indica una rete sparsa.
+Densità: indica una rete sparsa, poco collegata.
 
-Transitività: livello di clustering moderato.
+Transitività: rete poco clusterizzata.
 
-Centralizzazione del grado: misura la concentrazione dei collegamenti nella rete, significa che la distribuzione dei gradi non è completamente uniforme, con alcuni autori che hanno un numero di collegamenti significativamente maggiore rispetto ad altri.
+Centralizzazione del grado: misura che valuta quanto una rete è centralizzata in base alla distribuzione del grado dei nodi. Ci sono alcuni nodi con un numero di collegamenti significativamente maggiore rispetto alla maggior parte degli altri nodi, ma la distribuzione dei gradi non è uguale.
+<!-- per essere uguale il valore deve essere 0 -->
 
-Lunghezza media dei percorsi: molto breve.
+Lunghezza media dei percorsi: molto breve, rete compatta e ben collegata.
 
 # Collaborazione autori
 
-La rete di collaborazione scientifica è una rete in cui i nodi sono gli autori e i legami sono le coautorialità, in quanto quest'ultima è una delle forme più documentate di collaborazione scientifica (Glanzel, 2004).
+La rete di collaborazione scientifica è una rete in cui i nodi sono gli autori e i legami sono le coautorialità in articoli, in quanto quest'ultima è una delle forme più documentate di collaborazione scientifica (Glanzel, 2004).
+
+Due autori sono collegati nella rete **se hanno collaborato insieme in un articolo**.
 
 Una rete di collaborazione tra autori può essere ottenuta utilizzando la formulazione generale: $$AC=A^T \cdot A$$ dove A è una rete bipartita Papers x Autori.
 
@@ -352,11 +356,13 @@ g <- graph_from_adjacency_matrix(autColl, mode = "undirected", diag = FALSE)
 #autnetcoll$nodeDegree
 ```
 
+## Analisi della rete
+
 Sono presenti 4 clusters ed in ognuno di essi è presente almeno un nodo con dei valori alti di centralità, il che indica un ruolo di connessione e influenza all'interno del cluster.
 
 - cluster 1: Prof. Chittaro e Prof. Serra
 
-- cluster 2: Prof. Dovier e Prof. Policriti
+- cluster 2: Prof. Policriti e Prof. Dovier
 
 - cluster 3: Prof. Montanari
 
@@ -364,25 +370,25 @@ Sono presenti 4 clusters ed in ognuno di essi è presente almeno un nodo con dei
 
 
 ```{r autnetcoll cluster centrality}
-#autnetcoll$cluster_res
+autnetcoll$cluster_res
 ```
 
 
 ```{r rete collab stat}
-collabStat <- networkStat(autColl)
+collabStat <- networkStat(autColl, stat = "all")
 summary(collabStat)
 ```
+Densità: molto bassa, indicando che la maggior parte dei possibili collegamenti tra i nodi non esiste.
 
-Densità: rete molto sparsa.
+Transitività: relativamente alta, suggerendo che se due nodi sono entrambi collegati a un terzo nodo, c'è una buona probabilità che siano collegati tra loro. Questo è tipico delle reti con comunità ben definite.
 
-Transitività: livello di clustering elevato.
+Centralizzazione del grado: non c'è un singolo nodo dominante che ha la maggior parte delle connessioni ma il valore vicino allo 0 indica che la distribuzione dei gradi è abbastanza simile.
 
-Centralizzazione del grado: distribuzione dei gradi non è completamente uniforme, con alcuni autori che hanno un numero di collegamenti significativamente maggiore rispetto ad altri.
-
-Lunghezza media dei percorsi: molto breve.
+Lunghezza media dei percorsi: breve, rete compatta e collegata.
 
 
-## Centralità dei nodi
+<!-- 
+### Centralità dei nodi
 ```{r}
 page_rank_result <- page_rank(g)
 
@@ -416,8 +422,9 @@ as_tbl_graph(g) %>%
 
 Le altre misure di centralità (betweenness, che misura il numero di cammini più brevi che passano per un determinato nodo; closeness, che misura la distanza media da un nodo agli altri, e dell’autovettore, in cui un nodo è importante se è collegato ad altri nodi importanti) indicano che il nodo più centrale di questa rete è il Prof. Montanari.
 
+-->
 
-## Power measure
+### Power measure
 Analizzo la misura di potenza, che dice che un nodo è potente se è connesso a nodi non potenti.
 
 ```{r}
@@ -553,7 +560,7 @@ power_optimized <- function(A, t) {
 # Convertire la matrice di adiacenza in una matrice normale
 A <- as.matrix(get.adjacency(g))
 
-# Use diagonal perturbation
+# Use diagonal perturbation perché la matrice non è regolare
 Adj = as_adjacency_matrix(g)
 I = diag(0.15, vcount(g))
 (AI = Adj + I)
@@ -586,17 +593,17 @@ author_power <- data.frame(Author = author_names, PowerPercentage = percentage_v
 
 author_power <- author_power[order(-author_power$PowerPercentage), ]
 
-head(author_power)
+#head(author_power)
+author_power[1:15, ]
 
-correlation <- cor(power_values, degree(g))
-print(correlation)
+#correlation <- cor(power_values, degree(g))
+#print(correlation)
 
 ```
 
 Ricavo che i nodi più potenti all'interno della rete delle collaborazioni sono il Prof. Miculan (13.8% del potere totale) e il Prof. Policriti (9.2% del potere totale).
 
-Per ulteriore controllo, calcolo la correlazione tra il grado del nodo e il potere: 0.6162251; vuol dire che c'è una piccola correlazione.
-
+<!-- Per ulteriore controllo, calcolo la correlazione tra il grado del nodo e il potere: 0.6162251; vuol dire che c'è una piccola correlazione. -->
 
 
 # Analisi parole chiave
@@ -619,7 +626,7 @@ keyword_data <- data.frame(
 
 ```
 
-## Word cloud
+### Word cloud
 
 Dai dati della rete bipartita è possibile creare un df con le frequenze delle parole, da cui si può ricavare una word cloud.
 
@@ -638,7 +645,6 @@ Le tre parole più presenti sono Computer Circuits (125), Semantics (101) e Temp
 ## Rete co-occorrenze parole chiave
 
 ```{r rete cooc key}
-# An example of a classical keyword co-occurrences network
 coOc <- biblioNetwork(newProva, analysis = "co-occurrences", network = "keywords", sep = ";")
 coOcNet = networkPlot(coOc,  normalize = "association", weighted=T, n = 30, Title = "Keywords Co-Occurrence", type = "fruchterman", size.cex=TRUE, remove.multiple=TRUE, labelsize=2, label.n=25, label.cex=TRUE, label.color = TRUE, halo = FALSE)
 #coOcNet$nodeDegree
@@ -660,12 +666,20 @@ coOcNet$cluster_res
 
 
 ```{r rete cooc stat}
-#coOcStat <- networkStat(coOc)
-#summary(coOcStat, k = 10)
+coOcStat <- networkStat(coOc, stat = "all")
+summary(coOcStat)
 ```
 
+Densità: molto bassa.
 
-## Mappa tematica RIVEDERE
+Transitività: relativamente bassa per la dimensione della rete, le parole chiave tendono a collegarsi a molte altre senza formare gruppi chiusi; riflette i sottogruppi di argomenti o temi che sono discussi insieme.
+
+Centralizzazione del grado: molto basso, distribuzione del grado è quindi abbastanza uniforme, con poche parole chiave dominanti.
+
+Lunghezza media dei percorsi: breve, rete compatta e collegata.
+
+
+## Mappa tematica
 
 L'analisi di co-occorrenza delle parole chiave genera cluster tematici, la cui densità e centralità permettono di classificarli e mapparli in un diagramma bidimensionale, creando una mappa tematica. 
 
@@ -686,9 +700,10 @@ plot(map$map)
 #map$words
 ```
 
-La colonna r.rel si riferisce alle frequenze relative delle parole all'interno del cluster di appartenenza.
 
 Ad esempio, il cluster in cui spicca la parola "algorithms" è nel quadrante dei temi di base, mentre "crowdsourcing" si trova nel quadrante dei temi emergenti o in declino. Il cluster con "finite element method" si trova nel quadrante dei temi di nicchia.
+
+La colonna n.rel si riferisce alle frequenze relative delle parole all'interno del cluster di appartenenza.
 
 ```{r cluster analysis}
 clusters <-map$words %>%
@@ -701,7 +716,18 @@ clusters %>%
   slice(1:5)
 ```
 
-# Conclusione RIFARE
+# Conclusione
 
-<!-- nessuna rete ha una distribuzione dei nodi power-law, ma hanno lunghezza media dei cammini breve -->
-All'interno del dipartimento operano gruppi di ricerca che si distinguono per una notevole produttività scientifica, la quale si traduce in un significativo apporto alla letteratura di settore. Pur focalizzandosi su ambiti di ricerca differenti, i gruppi collaborano attivamente tra loro, favorendo lo scambio di conoscenze e competenze.
+L'analisi bibliometrica ha evidenziato diversi aspetti importanti, anche attraverso l'analisi delle varie reti.
+
+La rete dell'accoppiamento bibliografico tra autori ha mostrato come gli autori del dipartimento siano collegati tra loro attraverso le citazioni comuni, indicando una forte interconnessione tematica e la presenza di aree di ricerca ben definite e collaborazioni frequenti.
+
+La rete di collaborazione tra autori ha rivelato una struttura coesa con alcuni autori chiave che fungono da nodi centrali. La centralizzazione è moderata, e la rete presenta una buona transitività e un diametro contenuto, suggerendo che gli autori collaborano spesso e che ci sono percorsi relativamente brevi tra di loro.
+
+
+La rete delle co-occorrenze delle parole chiave ha messo in luce le principali aree di ricerca del dipartimento e le connessioni tematiche tra di esse. Alcune parole chiave emergono come particolarmente centrali e frequenti, riflettendo le aree di maggiore interesse e attività all'interno del dipartimento.
+
+
+In sintesi, posso affermare che all'interno del dipartimento operano gruppi di ricerca che si distinguono per una notevole produttività scientifica, la quale si traduce in un significativo apporto alla letteratura di settore. Pur focalizzandosi su ambiti di ricerca differenti, i gruppi collaborano attivamente tra loro, favorendo lo scambio di conoscenze e competenze.
+
+<!-- nessuna rete ha una distribuzione dei nodi power-law (hanno distribuzione quasi uguale), ma hanno lunghezza media dei cammini breve -->
