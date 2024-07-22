@@ -834,3 +834,5 @@ La rete di co-occorrenza delle parole chiave ha messo in luce le principali aree
 Inoltre, tutte le reti analizzate hanno la proprietà di piccolo mondo, con dei valori bassi di diametro e lunghezza media dei cammini e le tre distribuzioni di grado analizzate sono compatibili con una distribuzione dei gradi power-law.
 
 In conclusione, si può affermare che all’interno del dipartimento operano gruppi di ricerca che si distinguono per una notevole produttività scientifica, la quale si traduce in un significativo apporto alla letteratura di settore. Pur focalizzandosi su ambiti di ricerca differenti, i gruppi collaborano attivamente tra loro, favorendo lo scambio di conoscenze e competenze.
+
+# References
