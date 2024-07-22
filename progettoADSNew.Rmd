@@ -163,11 +163,11 @@ ggplotly(gs$MostProdAuthors)
 Autore più produttivo: Prof. Montanari con 200 articoli.
 
 ```{r}
-ggplotly(gs$MostProdCountries)
+#ggplotly(gs$MostProdCountries)
 #SCP: Single Country Publications
 #MCP: Multiple Country Publications
 ```
-Paese più produttivo: Italia.
+<!-- Paese più produttivo: Italia. -->
 
 ```{r}
 plot(gs$AnnualScientProd)
@@ -191,8 +191,8 @@ Anno con più citazioni: 1987.
 ### Documenti per tipo
 
 ```{r analisi docs}
-newProva %>%
-  count(DT, sort = TRUE)
+#newProva %>%
+#  count(DT, sort = TRUE)
 
 docType <- ggplot(newProva) +
   geom_bar(mapping = aes(x = fct_infreq(DT), fill = DT)) +
@@ -224,7 +224,7 @@ Si noti che 2 articoli del Professor Montanari sono tra i più citati.
 Primi autori citati più frequentemente:
 ```{r analisi ref aut}
 mostCitedAut <- citations(newProva, field = "author", sep = ";")
-cbind(mostCitedAut$Cited[1:15])
+cbind(mostCitedAut$Cited[1:13])
 #cbind(CR$Cited[c(-2, 1:14)])
 ```
 
@@ -318,23 +318,16 @@ g1 <- graph_from_adjacency_matrix(autCoupNet, mode = "undirected", diag = FALSE)
 #netCoup$nodeDegree
 ```
 
-### Analisi della rete
+### Analisi della rete - clusters
 
-I nodi più centrale della rete risultano essere il Professor Chittaro ed il Professor Montanari. Il primo ha i valori più alti nella centralità di betweenness e pagerank, mentre il secondo nella centralità di grado, di autovettore e closeness. ^[Tutte le nozioni viste a lezione sono utilizzate ma non ri-definite.].
+I nodi più centrali del primo cluster risultano essere il Professor Montanari ed il Professor Chittaro. Il primo ha i valori più alti nella centralità di grado, di autovettore e closeness, mentre il secondo nella centralità di betweenness e pagerank. ^[Tutte le nozioni viste a lezione sono utilizzate ma non ri-definite.].
 
-```{r}
-as_tbl_graph(g1) %>%
-  activate(nodes) %>%
-  mutate(degree = centrality_degree(normalized = TRUE), closeness = centrality_closeness(), betweenness = centrality_betweenness(normalized = TRUE), eigen = centrality_eigen()) %>%
-  select(name, degree, closeness, betweenness, eigen) %>%
-  arrange(desc(degree), desc(closeness), desc(betweenness), desc(eigen)) %>%
-  slice(1:40) %>%
-  as_tibble()
-```
+Nel secondo cluster, invece, il nodo più centrale secondo tutte le metriche risulta essere il Professor Mizzaro.
 
 
 ```{r net cluster centrality}
-netCoup$cluster_res[1:10,]
+#netCoup$cluster_res[1:10,]
+dplyr::filter(netCoup$cluster_res, vertex %in% c("montanari a", "chittaro l", "mizzaro s"))
 ```
 
 ```{r accop autori stat}
@@ -347,35 +340,19 @@ d1 <- table(degree(net))
 #summary(autCoupstat)
 ```
 
-Numero di nodi: 
-```{r}
-vcount(net)
-```
+Numero di nodi: `r vcount(net)`
 
-Densità:
-```{r}
-edge_density(net, loops = TRUE)
-```
-indica una rete densa, altamente collegata.
+Densità: `r edge_density(net, loops = TRUE)`, indica una rete densa, altamente collegata.
 
-Transitività:
-```{r}
-transitivity(net, type="global")
-```
-rete poco clusterizzata.
+Transitività: `r transitivity(net, type="global")`, indica una rete poco clusterizzata.
 
 <!-- Centralizzazione del grado: misura che valuta quanto una rete è centralizzata in base alla distribuzione del grado dei nodi. Se un singolo nodo ha un grado molto più alto rispetto a tutti gli altri, la centralizzazione del grado sarà alta. Se i gradi sono distribuiti più uniformemente tra i nodi, la centralizzazione del grado sarà bassa. 
 Nel mio caso, vi sono alcuni nodi con un numero di collegamenti significativamente maggiore rispetto alla maggior parte degli altri nodi, ma la distribuzione dei gradi non è uguale.
  per essere uguale il valore deve essere 0 -->
 
-Lunghezza media dei percorsi e diametro:
-```{r}
-mean_distance(net, directed=F)
-diameter(net, directed=F, weights=NA)
-```
-molto breve, rete compatta e ben collegata.
+Lunghezza media dei percorsi `r mean_distance(net, directed=F)` e diametro `r diameter(net, directed=F, weights=NA)`: molto brevi, rete compatta e ben collegata.
 
-Utilizzando la libreria poweRlaw, è possibile controllare se la mia distribuzione dei gradi segue una distribuzione power-law.
+Utilizzando la libreria poweRlaw [@poweRlaw], è possibile controllare se la distribuzione dei gradi segue una distribuzione power-law.
 
 ```{r}
 # Crea un oggetto power-law
@@ -399,9 +376,9 @@ bs_p1 = bootstrap_p(pl1)
 
 ```
 
-I pallini indicano la mia distribuzione dei gradi mentre la linea rossa indica la power-law adattata ai miei dati.
+I pallini indicano la distribuzione dei gradi mentre la linea rossa indica la power-law adattata ai dati.
 
-Il p-value di `r bs_p1$p` indica che i miei dati sono compatibili con la distribuzione power-law, con pochi nodi altamente connessi (hub) e molti nodi con poche connessioni.
+Il p-value di `r bs_p1$p` indica che i dati sono compatibili con la distribuzione power-law, con pochi nodi altamente connessi (hub) e molti nodi con poche connessioni.
 
 # Collaborazione autori
 
@@ -438,7 +415,7 @@ Sono presenti 4 clusters ed in ognuno di essi è presente almeno un nodo con dei
 
 
 ```{r autnetcoll cluster centrality}
-autnetcoll$cluster_res
+dplyr::filter(autnetcoll$cluster_res, vertex %in% c("chittaro l", "serra g", "policriti a", "dovier a", "montanari a", "mizzaro s", "della mea v"))
 ```
 
 
@@ -452,29 +429,13 @@ d2 <- table(degree(net2))
 #summary(autCoupstat)
 ```
 
-Numero di nodi: 
-```{r}
-vcount(net2)
-```
+Numero di nodi: `r vcount(net2)` 
 
-Densità:
-```{r}
-edge_density(net2, loops = TRUE)
-```
-indica una rete molto sparsa, poco collegata.
+Densità: `r edge_density(net2, loops = TRUE)`, indica una rete molto sparsa, poco collegata.
 
-Transitività:
-```{r}
-transitivity(net2, type="global")
-```
-rete moderatamente clusterizzata.
+Transitività: `r transitivity(net2, type="global")`, indica una rete moderatamente clusterizzata.
 
-Lunghezza media dei percorsi e diametro:
-```{r}
-mean_distance(net2, directed=F)
-diameter(net2, directed=F, weights=NA)
-```
-breve, rete compatta e collegata.
+Lunghezza media dei percorsi `r mean_distance(net2, directed=F)` e diametro `r diameter(net2, directed=F, weights=NA)`: brevi, rete compatta e collegata.
 
 
 
@@ -490,7 +451,7 @@ Centralizzazione del grado: non c'è un singolo nodo dominante che ha la maggior
 
 Lunghezza media dei percorsi: breve, rete compatta e collegata. -->
 
-Utilizzando la libreria poweRlaw, è possibile controllare se la mia distribuzione dei gradi segue una distribuzione power-law.
+Anche per questa rete viene utilizzata la libreria poweRlaw per controllare se la distribuzione dei gradi segue una distribuzione power-law.
 
 ```{r}
 # Crea un oggetto power-law
@@ -511,9 +472,9 @@ bs_p2 = bootstrap_p(pl2)
 
 ```
 
-I pallini indicano la mia distribuzione dei gradi mentre la linea rossa indica la power-law adattata ai miei dati.
+I pallini indicano la distribuzione dei gradi mentre la linea rossa indica la power-law adattata ai dati.
 
-Il p-value di `r bs_p2$p` indica che i miei dati sono compatibili con la distribuzione power-law, con pochi nodi altamente connessi (hub) e molti nodi con poche connessioni.
+Il p-value di `r bs_p2$p` indica che i dati sono compatibili con la distribuzione power-law, con pochi nodi altamente connessi (hub) e molti nodi con poche connessioni.
 
 ### Power measure
 
@@ -700,7 +661,7 @@ Analizzando la misura di potenza, la quale afferma che un nodo è potente se è 
 
 ## Rete parole chiave
 
-Rete Bipartita Papers x Keyword Scopus
+Rete Bipartita: Papers x Keyword Scopus
 
 Ogni paper ha associate delle parole chiave dal database di Scopus.
 
@@ -742,30 +703,19 @@ coOcNet = networkPlot(coOc,  normalize = "association", weighted=T, n = 45, Titl
 degrees <- table(coOcNet$nodeDegree)
 ```
 
-
-```{r}
-#hist_data <- hist(degrees, breaks = 0:(max(degrees)+1), plot = FALSE)
-
-#plot(hist_data$breaks[-1], hist_data$counts, log = "xy", type = "h", 
-#     xlab = "Grado (log scale)", ylab = "Frequenza (log scale)", 
-#     main = "Distribuzione dei Gradi con Assi Logaritmici")
-```
-
-<!-- (pr centrality: misura l'importanza di un nodo nella rete in base ai collegamenti in entrata da altri nodi. Un nodo con un valore alto è considerato più importante o influente.) -->
-
 Ci sono 4 cluster di parole chiave:
 
-- nel primo, il nodo più centrale secondo le metriche di betweenness e closeness è "Mobile Devices"; mentre "Algorithms" risulta il nodo con centralità di autovettore e PageRank più alto;
+- nel primo cluster, la parola "mobile devices" ha centralità di grado, betweenness e closeness più alte mentre "information retrieval" ha i valori più alti nelle centralità di autovettore e pagerank.
 
-- nel secondo, "Computer Programming" è il nodo con betweenness e clonesess più alta, mentre "Computer Circuits" ha centralità di autovettore e PageRank più alto.
+- nel secondo, le parole con le varie misure di centralità più alte sono: "artificial intelligence" per la centralità di grado più alta, "database systems" per quella di betweenness, "computational linguistics" per quella di closeness e "computer circuits" per quelle di autovettore e pagerank.
 
-- nel terzo,
+- nel terzo, "algorithms" è la parola con centralità di grado, autovettore e pagerank più alto; "bioinformatics" ha la centralità di betweenness più alta e "computer simulation" la centralità di closeness.
 
-- nel quarto, 
+- nel quarto, la parola "human" ha i valori più alti in tutte le misure di centralità.
 
 
 ```{r coOcNet cluster centrality}
-coOcNet$cluster_res
+dplyr::filter(coOcNet$cluster_res, vertex %in% c("mobile devices", "information retrieval", "artificial intelligence", "database systems", "computational linguistics", "computer circuits", "algorithms", "bioinformatics", "computer simulation", "human"))
 ```
 
 
@@ -791,33 +741,16 @@ d3 <- table(degree(net3))
 #summary(autCoupstat)
 ```
 
-Numero di nodi: 
-```{r}
-vcount(net3)
-```
+Numero di nodi: `r vcount(net3)`
 
-Densità:
-```{r}
-edge_density(net3, loops = TRUE)
-```
-indica una rete molto sparsa, poco collegata.
+Densità: `r edge_density(net3, loops = TRUE)`, indica una rete molto sparsa, poco collegata.
 
-Transitività:
-```{r}
-transitivity(net3, type="global")
-```
-rete poco clusterizzata.
+Transitività: `r transitivity(net3, type="global")`, indica una rete poco clusterizzata.
+
+Lunghezza media dei percorsi `r mean_distance(net3, directed=F)` e diametro `r diameter(net3, directed=F, weights=NA)`: molto breve, rete compatta e ben collegata.
 
 
-Lunghezza media dei percorsi e diametro:
-```{r}
-mean_distance(net3, directed=F)
-diameter(net3, directed=F, weights=NA)
-```
-molto breve, rete compatta e ben collegata.
-
-
-Utilizzando la libreria poweRlaw, è possibile controllare se la mia distribuzione dei gradi segue una distribuzione power-law.
+Anche per questa rete è stata utilizzata la libreria poweRlaw per controllare se la distribuzione dei gradi segue una distribuzione power-law.
 
 
 ```{r}
@@ -842,9 +775,9 @@ bs_p = bootstrap_p(pl)
 
 ```
 
-I pallini indicano la mia distribuzione dei gradi mentre la linea rossa indica la power-law adattata ai miei dati.
+I pallini indicano la distribuzione dei gradi mentre la linea rossa indica la power-law adattata ai dati.
 
-Il p-value di `r bs_p$p` indica che i miei dati sono compatibili con la distribuzione power-law, con pochi nodi altamente connessi (hub) e molti nodi con poche connessioni.
+Il p-value di `r bs_p$p` indica che i dati sono compatibili con la distribuzione power-law, con pochi nodi altamente connessi (hub) e molti nodi con poche connessioni.
 
 
 ## Mappa tematica
@@ -871,6 +804,8 @@ plot(map$map)
 
 Ad esempio, il cluster in cui spicca la parola "algorithms" è nel quadrante dei temi di base, mentre "crowdsourcing" si trova nel quadrante dei temi emergenti o in declino. Il cluster con "finite element method" si trova nel quadrante dei temi di nicchia.
 
+
+<!-- 
 La colonna n.rel si riferisce alle frequenze relative delle parole all'interno del cluster di appartenenza.
 
 ```{r cluster analysis}
@@ -884,17 +819,18 @@ clusters %>%
   slice(1:5)
 ```
 
-# Conclusione FINIRE
+-->
 
-L'analisi della produzione scientifica ha evidenziato diversi aspetti importanti, soprattutto attraverso l'analisi delle varie reti.
+# Conclusione
 
-La rete dell'accoppiamento bibliografico tra autori ha mostrato come gli autori del dipartimento siano collegati tra loro attraverso le citazioni comuni, indicando una forte interconnessione tematica e la presenza di aree di ricerca ben definite e collaborazioni frequenti.
+L’analisi della produzione scientifica ha evidenziato diversi aspetti importanti, soprattutto attraverso l’analisi delle varie reti.
 
-La rete di collaborazione tra autori ha rivelato la presenza di diversi cluster di collaborazione, con alcuni autori chiave che fungono da nodi centrali.
+La rete di accoppiamento bibliografico tra autori ha mostrato come gli autori del dipartimento siano collegati tra loro attraverso le citazioni comuni in una struttura altamente connessa e compatta.
 
-La rete delle co-occorrenze delle parole chiave ha messo in luce le principali aree di ricerca del dipartimento e le connessioni tematiche tra di esse. Alcune parole chiave emergono come particolarmente centrali e frequenti, riflettendo le aree di maggiore interesse e attività all'interno del dipartimento.
+La rete di collaborazione tra autori ha rivelato la presenza di quattro cluster di collaborazione, con figure chiave che collegano e influenzano ciascun gruppo. Nonostante la bassa densità della rete, indicativa di poche collaborazioni, i gruppi sono relativamente uniti.
 
-Inoltre, tutte le reti analizzate hanno la proprietà di piccolo mondo, con dei valori bassi di diametro e lunghezza media dei cammini e le tre distribuzioni di grado analizzate seguono una distribuzione dei gradi power-law.
+La rete di co-occorrenza delle parole chiave ha messo in luce le principali aree di ricerca del dipartimento e le connessioni tematiche tra di esse, formando quattro cluster principali. Le connessioni sono poche ma importanti, con parole chiave centrali che dominano all'interno dei loro cluster.
 
+Inoltre, tutte le reti analizzate hanno la proprietà di piccolo mondo, con dei valori bassi di diametro e lunghezza media dei cammini e le tre distribuzioni di grado analizzate sono compatibili con una distribuzione dei gradi power-law.
 
-In sintesi, si può dire che all'interno del dipartimento operano gruppi di ricerca che si distinguono per una notevole produttività scientifica, la quale si traduce in un significativo apporto alla letteratura di settore. Pur focalizzandosi su ambiti di ricerca differenti, i gruppi collaborano attivamente tra loro, favorendo lo scambio di conoscenze e competenze.
+In conclusione, si può affermare che all’interno del dipartimento operano gruppi di ricerca che si distinguono per una notevole produttività scientifica, la quale si traduce in un significativo apporto alla letteratura di settore. Pur focalizzandosi su ambiti di ricerca differenti, i gruppi collaborano attivamente tra loro, favorendo lo scambio di conoscenze e competenze.
