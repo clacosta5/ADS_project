@@ -173,20 +173,19 @@ Autore più produttivo: Prof. Montanari con 200 articoli.
 plot(gs$AnnualScientProd)
 ```
 
-Anno più produttivo: 2023 con 87 pubblicazioni.
+Anno più produttivo: 2023 con 87 pubblicazioni, segue 2021 con 85 pubblicazioni.
 
 ```{r}
-plot(gs$AverArtCitperYear)
+#plot(gs$AverArtCitperYear)
 ```
 
-Anno con media citazioni in articoli più alta: 2018.
+<!-- Anno con media citazioni in articoli più alta: 2018. -->
 
 ```{r}
-plot(gs$AverTotCitperYear)
+#plot(gs$AverTotCitperYear)
 ```
 
-Anno con più citazioni: 1987.
-
+<!-- Anno con la media delle citazioni totali più alta: 1987. -->
 
 ### Documenti per tipo
 
@@ -352,7 +351,7 @@ Nel mio caso, vi sono alcuni nodi con un numero di collegamenti significativamen
 
 Lunghezza media dei percorsi `r mean_distance(net, directed=F)` e diametro `r diameter(net, directed=F, weights=NA)`: molto brevi, rete compatta e ben collegata.
 
-Utilizzando la libreria poweRlaw [@poweRlaw], è possibile controllare se la distribuzione dei gradi segue una distribuzione power-law.
+Utilizzando la libreria poweRlaw [@poweRlaw], è possibile controllare se la distribuzione dei gradi segue una distribuzione power-law, attraverso un test di bonta dell'adattamento.
 
 ```{r}
 # Crea un oggetto power-law
@@ -474,7 +473,7 @@ bs_p2 = bootstrap_p(pl2)
 
 I pallini indicano la distribuzione dei gradi mentre la linea rossa indica la power-law adattata ai dati.
 
-Il p-value di `r bs_p2$p` indica che i dati sono compatibili con la distribuzione power-law, con pochi nodi altamente connessi (hub) e molti nodi con poche connessioni.
+Il p-value di `r bs_p2$p` indica che i dati sono abbastanza compatibili con la distribuzione power-law.
 
 ### Power measure
 
@@ -777,7 +776,7 @@ bs_p = bootstrap_p(pl)
 
 I pallini indicano la distribuzione dei gradi mentre la linea rossa indica la power-law adattata ai dati.
 
-Il p-value di `r bs_p$p` indica che i dati sono compatibili con la distribuzione power-law, con pochi nodi altamente connessi (hub) e molti nodi con poche connessioni.
+Il p-value di `r bs_p$p` indica che i dati sono compatibili con la distribuzione power-law.
 
 
 ## Mappa tematica
