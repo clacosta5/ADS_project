@@ -694,6 +694,14 @@ Le tre parole più presenti sono Computer Circuits (125), Semantics (101) e Temp
 
 ## Rete co-occorrenze parole chiave
 
+La rete di co-occorrenza è una rete in cui i nodi rappresentano le parole chiave utilizzate negli articoli e gli archi sono la co-occorrenza in articoli.
+
+Due parole chiave sono collegate nella rete **se appaiono insieme in almeno un articolo**.
+
+Una rete di co-occorrenza delle parole chiave può essere ottenuta utilizzando la formulazione generale: \( KC = K^T \cdot K \) dove \( K \) è una rete bipartita Papers x parole chiave.
+
+L'elemento diagonale \( k_{ci} \) rappresenta il numero di articoli in cui la parola chiave \( i \) è stata utilizzata.
+
 (Per comodità nella computazione e visualizzazione, vengono utilizzati soltanto i 45 nodi con il grado più alto).
 
 ```{r rete cooc key}
